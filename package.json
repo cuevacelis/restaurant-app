@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev-webpack": "next dev --webpack",
     "clean": "rm -rf .next node_modules pnpm-lock.yaml && pnpm i",
     "build": "next build",
     "start": "next start",
