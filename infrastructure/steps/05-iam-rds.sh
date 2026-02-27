@@ -17,10 +17,17 @@ setup_iam_rds() {
   ok "Rol: $RDS_ROLE_ARN"
 
   info "Asociando rol a instancia RDS '$RDS_INSTANCE_ID'..."
-  aws rds add-role-to-db-instance \
+  local rds_out
+  if rds_out=$(aws rds add-role-to-db-instance \
     --profile "$PROFILE" --region "$REGION" \
     --db-instance-identifier "$RDS_INSTANCE_ID" \
     --role-arn "$RDS_ROLE_ARN" \
-    --feature-name Lambda 2>/dev/null \
-    && ok "Rol asociado a RDS" || warn "Ya estaba asociado (o instancia no encontrada)"
+    --feature-name Lambda 2>&1); then
+    ok "Rol asociado a RDS"
+  elif echo "$rds_out" | grep -q "RoleAlreadyExists\|already associated"; then
+    ok "Rol ya estaba asociado"
+  else
+    echo "$rds_out" >&2
+    return 1
+  fi
 }
