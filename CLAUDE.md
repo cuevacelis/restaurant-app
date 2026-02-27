@@ -120,6 +120,49 @@ Browser cookies (not URL params) track the customer session:
 
 Cookies are cleared when the order reaches `paid` status or after a review is submitted.
 
+### Page Component Decomposition Pattern
+Large customer-facing pages split their UI into subcomponents inside a co-located `_components/` folder, with pure utility functions in `_lib/` and complex state logic in `_hooks/`. Example: `app/(not-auth)/menu/`.
+
+Rules:
+- `_lib/<module>.ts` — pure functions (no React, no hooks); e.g. cookie helpers
+- `_hooks/use<Feature>.ts` — custom hooks for cohesive state logic; import from `_lib/` and `_components/_types`
+- `_components/_types.ts` — shared types used by multiple subcomponents (e.g. `CartItem`, `MenuStep`)
+- `_components/<step>/` — subfolders group components by view step (`shared/`, `name-step/`, `menu-step/`, `tracking-step/`)
+- Subcomponents are **pure presentational**: they receive props and call callbacks, no data-fetching hooks
+- All data-fetching hooks, handlers, and page-level state stay in `page.tsx`
+- Use **ternary** (`condition ? <A /> : null`) instead of `&&` for JSX conditionals (Vercel rule `rendering-conditional-render`)
+- Use `React.SyntheticEvent` for form submit prop types to avoid React 19 `FormEvent` deprecation
+- Derive state from data during render instead of `useEffect` + `setState` when possible (Vercel rule `rerender-derived-state-no-effect`)
+
+Example structure:
+```
+app/(not-auth)/menu/
+  page.tsx              # data-fetching hooks + handlers + JSX routing
+  _lib/
+    session.ts          # pure cookie functions (no hooks)
+  _hooks/
+    useMenuSession.ts   # session init effect + step/name/orderId state
+    useCart.ts          # cart items, orderType, notes, totals
+  _components/
+    _types.ts           # CartItem, MenuStep, etc.
+    shared/
+      LoadingSpinner.tsx
+    name-step/
+      NameStep.tsx
+    menu-step/
+      MenuHeader.tsx
+      CategoryTabs.tsx
+      MenuItemCard.tsx
+      CartSheet.tsx
+      CartFab.tsx
+    tracking-step/
+      StatusTracker.tsx
+      OrderDetails.tsx
+      MpBanners.tsx
+      PaymentSection.tsx
+      ReviewSection.tsx
+```
+
 ### UI Components
 Hand-crafted shadcn-style components in `components/ui/`. The package `@base-ui-components/react` is installed but components are built on top of it rather than using Radix UI. Do not swap to Radix primitives.
 

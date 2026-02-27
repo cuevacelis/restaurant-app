@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogCloseButton, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { QrCodeDialog } from "@/components/qr/qr-code-dialog";
 import { useTables, useCreateTable, useDeleteTable } from "./services/useTables";
 import { useOrders } from "../orders/services/useOrders";
@@ -63,7 +63,7 @@ export default function TablesPage() {
   };
 
   const qrUrl = (tableNumber: number) =>
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/mesa/${tableNumber}`;
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/menu?tableId=${tableNumber}`;
 
   const generalMenuUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/menu`;
 
@@ -218,7 +218,6 @@ export default function TablesPage() {
       {/* Create table dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
-          <DialogCloseButton onClose={() => setShowCreate(false)} />
           <DialogHeader>
             <DialogTitle>Nueva mesa</DialogTitle>
           </DialogHeader>

@@ -9,7 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogCloseButton, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, type User } from "./services/useUsers";
 import { ROLE_LABELS } from "@/lib/utils";
 
@@ -130,7 +130,6 @@ export default function UsersPage() {
       {/* Create/edit dialog */}
       <Dialog open={dialog.open} onOpenChange={(open) => !open && setDialog({ open: false })}>
         <DialogContent>
-          <DialogCloseButton onClose={() => setDialog({ open: false })} />
           <DialogHeader>
             <DialogTitle>{dialog.user ? "Editar usuario" : "Nuevo usuario"}</DialogTitle>
           </DialogHeader>

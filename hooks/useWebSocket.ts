@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useCallback, useState } from "react";
 
 export type WsRole = "customer" | "waiter" | "chef" | "admin";
 
@@ -40,9 +40,10 @@ export function useWebSocket({
   const wsRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WsMessage | null>(null);
-  const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
   const onMessageRef = useRef(onMessage);
-  onMessageRef.current = onMessage;
+  const connectRef = useRef<() => void>(() => {});
 
   const connect = useCallback(() => {
     const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
@@ -72,8 +73,7 @@ export function useWebSocket({
 
       ws.onclose = () => {
         setConnected(false);
-        // Auto-reconnect after 3s
-        reconnectTimeout.current = setTimeout(() => connect(), 3000);
+        reconnectTimeout.current = setTimeout(() => connectRef.current(), 3000);
       };
 
       ws.onerror = () => ws.close();
@@ -82,12 +82,22 @@ export function useWebSocket({
     }
   }, [role, tableId, userId, orderId, enabled]);
 
+  // Sync refs after render — must not read/write refs during render (React 19)
+  useLayoutEffect(() => {
+    onMessageRef.current = onMessage;
+    connectRef.current = connect;
+  });
+
   useEffect(() => {
     if (!enabled) return;
     connect();
     return () => {
       clearTimeout(reconnectTimeout.current);
-      wsRef.current?.close();
+      if (wsRef.current) {
+        // Null out onclose to prevent the auto-reconnect from firing on intentional close
+        wsRef.current.onclose = null;
+        wsRef.current.close();
+      }
     };
   }, [connect, enabled]);
 

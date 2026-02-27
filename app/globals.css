@@ -44,6 +44,7 @@
   --sidebar-accent-foreground: hsl(18 25% 18%);
   --sidebar-border: hsl(32 24% 84%);
   --sidebar-ring: hsl(350 70% 44%);
+  --sidebar: hsl(0 0% 98%);
 }
 
 .dark {
@@ -83,6 +84,7 @@
   --sidebar-accent-foreground: hsl(40 24% 82%);
   --sidebar-border: hsl(18 16% 16%);
   --sidebar-ring: hsl(350 65% 58%);
+  --sidebar: hsl(240 5.9% 10%);
 }
 
 @theme inline {

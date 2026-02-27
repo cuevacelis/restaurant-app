@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogCloseButton } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface PaymentMethod {
   id: string;
@@ -116,7 +116,6 @@ function PaymentMethodDialog({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <DialogCloseButton onClose={onClose} />
         <DialogHeader>
           <DialogTitle>{editing ? "Editar método de pago" : "Nuevo método de pago"}</DialogTitle>
         </DialogHeader>

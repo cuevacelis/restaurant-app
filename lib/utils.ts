@@ -62,5 +62,5 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 export function generateQrUrl(tableNumber: number, baseUrl: string): string {
-  return `${baseUrl}/mesa/${tableNumber}`;
+  return `${baseUrl}/menu?tableId=${tableNumber}`;
 }

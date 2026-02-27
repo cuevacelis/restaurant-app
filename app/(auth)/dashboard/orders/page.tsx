@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogCloseButton } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   useOrders, useOrderDetail, useUpdateOrderStatus,
   useChangeOrderTable, useUpdateOrderItems,
@@ -680,7 +680,6 @@ export default function OrdersPage() {
         onOpenChange={(open) => !open && setParam("orderId", null)}
       >
         <DialogContent>
-          <DialogCloseButton onClose={() => setParam("orderId", null)} />
           <DialogHeader>
             <DialogTitle>Detalle del pedido</DialogTitle>
           </DialogHeader>
@@ -696,7 +695,6 @@ export default function OrdersPage() {
       {/* Create order dialog (admin) */}
       <Dialog open={createOpen} onOpenChange={(open) => !open && setCreateOpen(false)}>
         <DialogContent>
-          <DialogCloseButton onClose={() => setCreateOpen(false)} />
           <DialogHeader>
             <DialogTitle>Nuevo pedido</DialogTitle>
           </DialogHeader>

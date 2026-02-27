@@ -17,7 +17,7 @@ export async function createPreference(
 ) {
   const client = getClient(accessToken);
   const preference = new Preference(client);
-  const returnPath = opts.tableId ? `/mesa/${opts.tableId}` : "/menu";
+  const returnPath = opts.tableId ? `/menu?tableId=${opts.tableId}` : "/menu";
 
   return preference.create({
     body: {

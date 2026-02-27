@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogCloseButton, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   useMenuManagement,
@@ -268,7 +268,6 @@ export default function MenuPage() {
       {/* Item create/edit dialog */}
       <Dialog open={itemDialog.open} onOpenChange={(open) => !open && setItemDialog({ open: false })}>
         <DialogContent>
-          <DialogCloseButton onClose={() => setItemDialog({ open: false })} />
           <DialogHeader>
             <DialogTitle>{itemDialog.item ? "Editar platillo" : "Nuevo platillo"}</DialogTitle>
           </DialogHeader>

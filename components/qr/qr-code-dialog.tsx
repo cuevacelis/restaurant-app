@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogCloseButton,
 } from "@/components/ui/dialog";
 
 interface QrCodeDialogProps {
@@ -88,7 +87,6 @@ export function QrCodeDialog({ open, onOpenChange, tableNumber, label, url }: Qr
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xs">
-        <DialogCloseButton onClose={() => onOpenChange(false)} />
         <DialogHeader>
           <div className="flex items-center gap-2">
             <QrCode className="h-5 w-5 text-primary" />
