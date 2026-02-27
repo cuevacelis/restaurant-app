@@ -3,8 +3,19 @@ import { getOrders, getOrderStats } from "@/lib/db/queries/orders";
 import { getTables } from "@/lib/db/queries/tables";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList, ChefHat, CheckCircle, Clock, UtensilsCrossed } from "lucide-react";
-import { formatCurrency, formatRelativeTime, ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/utils";
+import {
+  ClipboardList,
+  ChefHat,
+  CheckCircle,
+  Clock,
+  UtensilsCrossed,
+} from "lucide-react";
+import {
+  formatCurrency,
+  formatRelativeTime,
+  ORDER_STATUS_COLORS,
+  ORDER_STATUS_LABELS,
+} from "@/lib/utils";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -84,21 +95,32 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Sin pedidos aún</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                Sin pedidos aún
+              </p>
             ) : (
               recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between py-1">
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between py-1"
+                >
                   <div>
                     <p className="text-sm font-medium">{order.customer_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {order.table_number ? `Mesa #${order.table_number}` : "Para llevar"}
+                      {order.table_number
+                        ? `Mesa #${order.table_number}`
+                        : "Para llevar"}
                       {" · "}
                       {formatRelativeTime(order.created_at)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">{formatCurrency(order.total_amount)}</span>
-                    <Badge className={`text-xs ${ORDER_STATUS_COLORS[order.status]}`}>
+                    <span className="text-sm font-semibold">
+                      {formatCurrency(order.total_amount)}
+                    </span>
+                    <Badge
+                      className={`text-xs ${ORDER_STATUS_COLORS[order.status]}`}
+                    >
                       {ORDER_STATUS_LABELS[order.status]}
                     </Badge>
                   </div>
@@ -122,7 +144,9 @@ export default async function DashboardPage() {
                 >
                   <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">{table.number}</span>
-                  <span className="text-[10px] text-muted-foreground">{table.capacity}p</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {table.capacity}p
+                  </span>
                 </div>
               ))}
             </div>
