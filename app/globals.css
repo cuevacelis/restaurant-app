@@ -4,74 +4,85 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(240 10% 3.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 3.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 3.9%);
-  --primary: hsl(240 5.9% 10%);
-  --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 4.8% 95.9%);
-  --secondary-foreground: hsl(240 5.9% 10%);
-  --muted: hsl(240 4.8% 95.9%);
-  --muted-foreground: hsl(240 3.8% 46.1%);
-  --accent: hsl(240 4.8% 95.9%);
-  --accent-foreground: hsl(240 5.9% 10%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(240 5.9% 10%);
-  --radius: 0.5rem;
-  --chart-1: hsl(12 76% 61%);
-  --chart-2: hsl(173 58% 39%);
-  --chart-3: hsl(197 37% 24%);
-  --chart-4: hsl(43 74% 66%);
-  --chart-5: hsl(27 87% 67%);
-  --sidebar-background: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  /* Warm cream background, rich espresso text */
+  --background: hsl(40 45% 97%);
+  --foreground: hsl(18 30% 10%);
+  --card: hsl(38 35% 95%);
+  --card-foreground: hsl(18 30% 10%);
+  --popover: hsl(38 35% 95%);
+  --popover-foreground: hsl(18 30% 10%);
+  /* Cherry red primary — alegre y confianza */
+  --primary: hsl(350 70% 44%);
+  --primary-foreground: hsl(40 45% 97%);
+  /* Warm linen secondary */
+  --secondary: hsl(36 32% 88%);
+  --secondary-foreground: hsl(18 25% 18%);
+  --muted: hsl(36 26% 91%);
+  --muted-foreground: hsl(18 16% 46%);
+  /* Honey gold accent */
+  --accent: hsl(42 88% 52%);
+  --accent-foreground: hsl(18 30% 10%);
+  --destructive: hsl(4 76% 52%);
+  --destructive-foreground: hsl(40 45% 97%);
+  /* Warm parchment borders */
+  --border: hsl(32 26% 82%);
+  --input: hsl(32 26% 86%);
+  --ring: hsl(350 70% 44%);
+  --radius: 0.75rem;
+  /* Vibrant food-inspired charts */
+  --chart-1: hsl(350 70% 44%);
+  --chart-2: hsl(42 88% 52%);
+  --chart-3: hsl(85 42% 42%);
+  --chart-4: hsl(200 58% 44%);
+  --chart-5: hsl(22 80% 52%);
+  /* Warm linen sidebar */
+  --sidebar-background: hsl(36 30% 93%);
+  --sidebar-foreground: hsl(18 25% 18%);
+  --sidebar-primary: hsl(350 70% 44%);
+  --sidebar-primary-foreground: hsl(40 45% 97%);
+  --sidebar-accent: hsl(36 26% 88%);
+  --sidebar-accent-foreground: hsl(18 25% 18%);
+  --sidebar-border: hsl(32 24% 84%);
+  --sidebar-ring: hsl(350 70% 44%);
 }
 
 .dark {
-  --background: hsl(240 10% 3.9%);
-  --foreground: hsl(0 0% 98%);
-  --card: hsl(240 10% 3.9%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(240 10% 3.9%);
-  --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(0 0% 98%);
-  --primary-foreground: hsl(240 5.9% 10%);
-  --secondary: hsl(240 3.7% 15.9%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 3.7% 15.9%);
-  --muted-foreground: hsl(240 5% 64.9%);
-  --accent: hsl(240 3.7% 15.9%);
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 3.7% 15.9%);
-  --input: hsl(240 3.7% 15.9%);
-  --ring: hsl(240 4.9% 83.9%);
-  --chart-1: hsl(220 70% 50%);
-  --chart-2: hsl(160 60% 45%);
-  --chart-3: hsl(30 80% 55%);
-  --chart-4: hsl(280 65% 60%);
-  --chart-5: hsl(340 75% 55%);
-  --sidebar-background: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  /* Deep espresso background, warm cream text */
+  --background: hsl(18 25% 6%);
+  --foreground: hsl(40 30% 93%);
+  --card: hsl(18 20% 10%);
+  --card-foreground: hsl(40 30% 93%);
+  --popover: hsl(18 20% 10%);
+  --popover-foreground: hsl(40 30% 93%);
+  /* Bright cherry for dark — stays alegre */
+  --primary: hsl(350 65% 58%);
+  --primary-foreground: hsl(18 25% 6%);
+  --secondary: hsl(18 16% 15%);
+  --secondary-foreground: hsl(40 25% 85%);
+  --muted: hsl(18 14% 17%);
+  --muted-foreground: hsl(36 20% 58%);
+  /* Honey gold accent */
+  --accent: hsl(42 78% 50%);
+  --accent-foreground: hsl(18 25% 6%);
+  --destructive: hsl(4 68% 58%);
+  --destructive-foreground: hsl(40 30% 93%);
+  --border: hsl(18 16% 18%);
+  --input: hsl(18 16% 21%);
+  --ring: hsl(350 65% 58%);
+  --chart-1: hsl(350 65% 58%);
+  --chart-2: hsl(42 78% 54%);
+  --chart-3: hsl(85 46% 52%);
+  --chart-4: hsl(200 62% 54%);
+  --chart-5: hsl(22 76% 58%);
+  /* Dark espresso sidebar */
+  --sidebar-background: hsl(18 20% 9%);
+  --sidebar-foreground: hsl(40 24% 82%);
+  --sidebar-primary: hsl(350 65% 58%);
+  --sidebar-primary-foreground: hsl(18 25% 6%);
+  --sidebar-accent: hsl(18 16% 15%);
+  --sidebar-accent-foreground: hsl(40 24% 82%);
+  --sidebar-border: hsl(18 16% 16%);
+  --sidebar-ring: hsl(350 65% 58%);
 }
 
 @theme inline {
