@@ -50,8 +50,8 @@ export function StatusTracker({ status, orderId }: StatusTrackerProps) {
         </div>
         <div className="text-center">
           <Badge
-            variant={["completed", "paid"].includes(status) ? "success" : "info"}
-            className="text-sm px-4 py-1"
+            variant="outline"
+            className={`text-sm px-4 py-1 ${["completed", "paid"].includes(status) ? "border-green-400 text-green-700 dark:text-green-400" : "border-blue-400 text-blue-700 dark:text-blue-400"}`}
           >
             {ORDER_STATUS_LABELS[status]}
           </Badge>

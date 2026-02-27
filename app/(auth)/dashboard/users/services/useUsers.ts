@@ -2,15 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-export interface User {
-  id: string;
-  username: string;
-  role: "admin" | "waiter" | "chef";
-  name: string;
-  active: boolean;
-  created_at: string;
-}
+import type { User } from "../_components/_types";
+export type { User } from "../_components/_types";
 
 async function fetchUsers(): Promise<{ users: User[] }> {
   const res = await fetch("/api/users");
