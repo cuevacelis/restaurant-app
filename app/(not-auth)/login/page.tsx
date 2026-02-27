@@ -3,12 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -16,6 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useLogin } from "./services/useLogin";
 
@@ -31,11 +36,7 @@ export default function LoginPage() {
 
   const { mutate: login, isPending } = useLogin();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
+  const { control, handleSubmit } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { username: "", password: "" },
   });
@@ -78,65 +79,71 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Usuario</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="admin"
-                  disabled={isPending}
-                  autoFocus
-                  aria-invalid={!!errors.username}
-                  {...register("username")}
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <FieldGroup>
+                <Controller
+                  name="username"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="username">Usuario</FieldLabel>
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="admin"
+                        disabled={isPending}
+                        autoFocus
+                        aria-invalid={fieldState.invalid}
+                        {...field}
+                      />
+                      <FieldError errors={[fieldState.error]} />
+                    </Field>
+                  )}
                 />
-                {errors.username && (
-                  <p role="alert" className="text-xs text-destructive">
-                    {errors.username.message}
-                  </p>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    disabled={isPending}
-                    aria-invalid={!!errors.password}
-                    className="pr-10"
-                    {...register("password")}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowPassword((v) => !v)}
-                    tabIndex={-1}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                {errors.password && (
-                  <p role="alert" className="text-xs text-destructive">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          disabled={isPending}
+                          aria-invalid={fieldState.invalid}
+                          className="pr-10"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowPassword((v) => !v)}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <FieldError errors={[fieldState.error]} />
+                    </Field>
+                  )}
+                />
 
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Iniciando sesión..." : "Iniciar sesión"}
-              </Button>
+                <Button type="submit" className="w-full" disabled={isPending}>
+                  {isPending ? "Iniciando sesión..." : "Iniciar sesión"}
+                </Button>
+              </FieldGroup>
             </form>
 
-            <p className="mt-6 text-center text-xs text-muted-foreground">
+            <p className="mt-4 text-center text-xs text-muted-foreground">
               Sistema de gestión de restaurante
             </p>
           </CardContent>
