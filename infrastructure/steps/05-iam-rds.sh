@@ -24,7 +24,7 @@ setup_iam_rds() {
     --role-arn "$RDS_ROLE_ARN" \
     --feature-name Lambda 2>&1); then
     ok "Rol asociado a RDS"
-  elif echo "$rds_out" | grep -q "RoleAlreadyExists\|already associated"; then
+  elif echo "$rds_out" | grep -q "RoleAlreadyExists\|already associated\|supports only one ARN"; then
     ok "Rol ya estaba asociado"
   else
     echo "$rds_out" >&2
