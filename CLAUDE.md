@@ -44,6 +44,51 @@ All domain queries live in `lib/db/queries/` (orders, auth, menu, tables, paymen
 
 **Client side**: `useSession()` in `app/(auth)/dashboard/orders/services/useOrders.ts` fetches `/api/auth/me` to get the current user's role for conditional UI.
 
+### Form Schemas (Zod)
+Zod schemas for forms live in a co-located `schema/` folder next to the page that uses them, named `<feature>-schema.ts`. Example:
+- `app/(not-auth)/login/schema/login-schema.ts` — exports `loginSchema` and `LoginFormData`
+
+Always export both the schema and the inferred type (`z.infer<typeof schema>`) from this file.
+
+### Forms — Field Components
+Every form must use the Field components from `components/ui/field.tsx` together with React Hook Form's `Controller`. Never render bare inputs without wrapping them in these components.
+
+Structure:
+```tsx
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const { control, handleSubmit } = useForm<MyFormData>({
+  resolver: zodResolver(mySchema),
+  defaultValues: { ... },
+});
+
+<form onSubmit={handleSubmit(onSubmit)}>
+  <FieldGroup>
+    <Controller
+      name="fieldName"
+      control={control}
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.invalid}>
+          <FieldLabel htmlFor="fieldName">Label</FieldLabel>
+          <Input id="fieldName" aria-invalid={fieldState.invalid} {...field} />
+          <FieldError errors={[fieldState.error]} />
+        </Field>
+      )}
+    />
+  </FieldGroup>
+</form>
+```
+
+Available exports: `Field`, `FieldGroup`, `FieldLabel`, `FieldError`, `FieldDescription`, `FieldSet`, `FieldLegend`, `FieldSeparator`, `FieldContent`, `FieldTitle`.
+
+Key rules:
+- `FieldGroup` wraps all fields in the form
+- `Field` receives `data-invalid={fieldState.invalid}` — this drives destructive color styling
+- `FieldError` takes `errors={[fieldState.error]}` (single error) or an array for multiple; it renders nothing when there are no errors
+- `FieldDescription` is used for helper/hint text below the input (optional)
+
 ### Client Data Fetching
 All client data fetching uses **TanStack Query v5**. Each feature area has a co-located `services/` folder with custom hooks (e.g. `dashboard/orders/services/useOrders.ts`). The customer pages share services from `mesa/[tableId]/services/`.
 

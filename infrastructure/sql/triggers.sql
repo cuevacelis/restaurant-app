@@ -1,15 +1,27 @@
 -- ============================================================
 -- WEBSOCKET TRIGGERS via aws_lambda extension
--- Run AFTER schema.sql and AFTER Lambda functions are deployed
--- Replace LAMBDA_ARN with actual ARN from setup-aws.sh output
+-- Run AFTER schema.sql y AFTER Lambda functions are deployed
+--
+-- Requiere pasar el ARN como variable de psql:
+--   psql -h HOST -U USER -d DB -v lambda_arn='arn:aws:...' -f triggers.sql
+--
+-- El ARN lo imprime setup-aws.sh al final.
 -- ============================================================
+
+-- Validar que la variable lambda_arn fue pasada
+\if :{?lambda_arn}
+\else
+  \warn 'ERROR: variable lambda_arn no definida.'
+  \warn 'Ejecuta con: psql ... -v lambda_arn=''arn:aws:lambda:REGION:ACCOUNT:function:NOMBRE'''
+  \quit
+\endif
 
 -- Function called on orders INSERT/UPDATE → invokes Lambda → API Gateway WebSocket
 CREATE OR REPLACE FUNCTION notify_order_change()
 RETURNS TRIGGER AS $$
 DECLARE
   payload        JSON;
-  lambda_arn     TEXT := 'arn:aws:lambda:us-east-1:296291258844:function:restaurant-db-trigger';
+  lambda_arn     TEXT := :'lambda_arn';
   lambda_region  TEXT := 'us-east-1';
 BEGIN
   -- Build JSON payload

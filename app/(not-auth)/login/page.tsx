@@ -5,7 +5,6 @@ import Image from "next/image";
 import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,13 +22,7 @@ import {
 } from "@/components/ui/field";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useLogin } from "./services/useLogin";
-
-const loginSchema = z.object({
-  username: z.string().min(1, "El usuario es requerido"),
-  password: z.string().min(1, "La contraseña es requerida"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginFormData } from "./schema/login-schema";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);

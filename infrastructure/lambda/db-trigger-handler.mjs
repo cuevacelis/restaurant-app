@@ -1,27 +1,27 @@
 /**
  * Lambda: Called directly by PostgreSQL trigger via aws_lambda extension
- * Receives order change data and calls the broadcast Lambda
+ * Acts as a bridge: receives the order change payload and forwards it
+ * to ws-broadcast asynchronously, keeping the DB transaction non-blocking.
  */
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
-const lambda = new LambdaClient({ region: "us-east-1" });
+const lambda = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
 const BROADCAST_FUNCTION = process.env.BROADCAST_FUNCTION_NAME || "restaurant-ws-broadcast";
 
 export const handler = async (event) => {
-  console.log("DB trigger received:", JSON.stringify(event));
-
-  // PostgreSQL sends the payload as the event body
-  // It may come directly as the object or as a JSON string
   const payload = typeof event === "string" ? JSON.parse(event) : event;
 
-  // Invoke broadcast Lambda asynchronously
-  await lambda.send(
-    new InvokeCommand({
-      FunctionName: BROADCAST_FUNCTION,
-      InvocationType: "Event", // async
-      Payload: Buffer.from(JSON.stringify(payload)),
-    })
-  );
+  try {
+    await lambda.send(
+      new InvokeCommand({
+        FunctionName: BROADCAST_FUNCTION,
+        InvocationType: "Event", // async — no espera respuesta del broadcast
+        Payload: Buffer.from(JSON.stringify(payload)),
+      })
+    );
+  } catch (err) {
+    console.error("Failed to invoke broadcast Lambda:", err.message);
+  }
 
   return { statusCode: 200 };
 };

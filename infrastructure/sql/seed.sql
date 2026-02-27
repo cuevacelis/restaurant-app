@@ -1,21 +1,18 @@
 -- ============================================================
 -- SEED DATA
 -- Run AFTER schema.sql
--- Admin password: admin123  (bcrypt hash)
--- Waiter password: waiter123
--- Chef password: chef123
+-- admin   → admin123
+-- waiter1 → password
+-- chef1   → password
 -- ============================================================
 
--- Default admin user
--- password: admin123
 INSERT INTO users (username, password_hash, role, name) VALUES
-  ('admin',  '$2a$10$FrqnBqOCC/8tCzFr2M//i.ck1EaZlmHPkbSmxYCuRBKoLN0b44cTO', 'admin',  'Administrador'),
-  ('waiter1','$2a$10$yt4LX5UA3nfsNMGMOQASR.IdnrwSxpXs5M2veSD9idrqLUdbcd4GS', 'waiter', 'Carlos Mesero'),
-  ('chef1',  '$2a$10$E5a3TNKz6dj2SIcrJyh/ru0Hy5sKLVqy1HFIROA.pulzlY1iOi9Te', 'chef',   'Ana Cocinera')
+  ('admin',   '$2a$10$FrqnBqOCC/8tCzFr2M//i.ck1EaZlmHPkbSmxYCuRBKoLN0b44cTO', 'admin',  'Administrador'),
+  ('waiter1', '$2b$10$v9go8.f0UB1KiY/Fy6eXI.oEwjN9n0aIGGY3ajhGvZHrusbxhj.Pm', 'waiter', 'Carlos Mesero'),
+  ('chef1',   '$2b$10$v9go8.f0UB1KiY/Fy6eXI.oEwjN9n0aIGGY3ajhGvZHrusbxhj.Pm', 'chef',   'Ana Cocinera')
 ON CONFLICT (username) DO NOTHING;
 
--- NOTE: passwords for waiter1 and chef1 are "password"
--- Change them in production using the admin panel
+-- Cambiar contraseñas en producción desde el panel de admin
 
 -- Restaurant tables
 INSERT INTO restaurant_tables (number, capacity) VALUES

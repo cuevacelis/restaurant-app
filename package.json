@@ -8,8 +8,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:setup": "node scripts/setup-db.js",
-    "db:seed": "node scripts/seed-db.js"
+    "infra:setup": "bash infrastructure/setup-aws.sh",
+    "infra:destroy": "bash infrastructure/setup-aws.sh --destroy",
+    "db:setup": "node --env-file=.env.local scripts/setup-db.js",
+    "db:seed": "node --env-file=.env.local scripts/seed-db.js",
+    "db:reset": "pnpm db:setup && pnpm db:seed",
+    "db:fix-pass": "node --env-file=.env.local scripts/fix-passwords.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

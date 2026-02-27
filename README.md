@@ -13,12 +13,78 @@ Sistema de gestión para restaurantes con pedidos vía QR, cocina en tiempo real
 
 ## Stack
 
-- **Next.js 15** — App Router, Server Components, API Routes
+- **Next.js 16** — App Router, Server Components, API Routes
 - **PostgreSQL** en AWS RDS
 - **TanStack Query v5** — data fetching y mutaciones en el cliente
 - **WebSockets** vía AWS API Gateway + Lambda + DynamoDB — notificaciones en tiempo real
 - **MercadoPago SDK v2** — pagos con tarjeta y billetera virtual
-- **Tailwind CSS v3** + componentes propios estilo shadcn
+- **Tailwind CSS v4** + componentes propios estilo shadcn
+
+## Arquitectura
+
+```mermaid
+graph TB
+    subgraph CLIENTS["Clientes (Browser)"]
+        QR["📱 Cliente\n/mesa/[id] · /menu"]
+        STAFF["💻 Staff\n/dashboard"]
+        SCREEN["📺 Pantalla\n/pantalla"]
+    end
+
+    subgraph NEXTJS["⚡ Next.js App"]
+        ROUTES["App Router\nAPI Routes /api/**\nMiddleware JWT"]
+    end
+
+    subgraph AWS["☁️ AWS"]
+        subgraph RDS_BOX["RDS"]
+            PG[("PostgreSQL")]
+            TRIG["notify_order_change\npg trigger"]
+        end
+        subgraph LAMBDAS["Lambda"]
+            LT["db-trigger-handler"]
+            LB["ws-broadcast"]
+            LC["ws-connect"]
+            LD["ws-disconnect"]
+        end
+        APIGW["API Gateway\nWebSocket"]
+        DDB[("DynamoDB\nConnections")]
+    end
+
+    MP["💳 MercadoPago"]
+
+    QR & STAFF & SCREEN -->|HTTPS| ROUTES
+    ROUTES -->|SQL| PG
+    PG -->|"INSERT / UPDATE orders"| TRIG
+    TRIG -->|"aws_lambda.invoke (async)"| LT
+    LT -->|InvokeFunction| LB
+    LB -->|Scan connections| DDB
+    LB -->|PostToConnection| APIGW
+    APIGW -->|"$connect"| LC
+    APIGW -->|"$disconnect"| LD
+    LC & LD -->|Put / Delete item| DDB
+    APIGW -->|WebSocket push| QR & STAFF & SCREEN
+    ROUTES -->|create preference| MP
+    MP -->|"webhook POST /api/webhooks/mercadopago"| ROUTES
+```
+
+### Roles IAM
+
+| Rol | Principal | Permisos |
+|---|---|---|
+| `restaurant-lambda-role` | `lambda.amazonaws.com` | CloudWatch Logs, DynamoDB full, InvokeFunction, execute-api:ManageConnections |
+| `restaurant-rds-lambda-role` | `rds.amazonaws.com` | InvokeFunction → `restaurant-db-trigger` únicamente |
+
+### Flujo en tiempo real
+
+```
+Orden INSERT/UPDATE en PostgreSQL
+  → pg trigger notify_order_change()
+  → aws_lambda.invoke (async, no bloquea la DB)
+  → Lambda db-trigger-handler
+  → Lambda ws-broadcast
+  → DynamoDB: obtiene conexiones activas filtradas por rol/tableId
+  → API Gateway: PostToConnection a cada cliente relevante
+  → Browser: UI se actualiza sin polling
+```
 
 ## Requisitos previos
 

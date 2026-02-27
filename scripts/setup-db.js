@@ -1,55 +1,43 @@
 #!/usr/bin/env node
 /**
- * db:setup — Creates the database and runs schema.sql
- * Usage: pnpm run db:setup
+ * db:setup — Crea la base de datos y aplica schema.sql
  */
-const { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
-
-const dbConfig = {
-  host: process.env.DB_HOST || "restaurant.ckr8w8yqg3ey.us-east-1.rds.amazonaws.com",
-  port: parseInt(process.env.DB_PORT || "5432"),
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "Fb21485620.-",
-  ssl: { rejectUnauthorized: false },
-};
-
-const dbName = process.env.DB_NAME || "restaurant";
+const { createPool, DB_NAME } = require("./lib/db");
 
 async function run() {
-  // Connect to postgres DB to create the target DB if needed
-  const adminPool = new Pool({ ...dbConfig, database: "postgres" });
-  const adminClient = await adminPool.connect();
+  // Conectar a 'postgres' para crear la DB si no existe
+  const adminPool = createPool("postgres");
+  const admin = await adminPool.connect();
   try {
-    const res = await adminClient.query(
+    const { rowCount } = await admin.query(
       "SELECT 1 FROM pg_database WHERE datname = $1",
-      [dbName]
+      [DB_NAME]
     );
-    if (res.rowCount === 0) {
-      await adminClient.query(`CREATE DATABASE "${dbName}"`);
-      console.log(`✓ Database "${dbName}" created`);
+    if (rowCount === 0) {
+      await admin.query(`CREATE DATABASE "${DB_NAME}"`);
+      console.log(`✓ Base de datos "${DB_NAME}" creada`);
     } else {
-      console.log(`✓ Database "${dbName}" already exists`);
+      console.log(`✓ Base de datos "${DB_NAME}" ya existe`);
     }
   } finally {
-    adminClient.release();
+    admin.release();
     await adminPool.end();
   }
 
-  const pool = new Pool({ ...dbConfig, database: dbName });
+  // Aplicar schema
+  const pool = createPool();
   const client = await pool.connect();
   try {
-    console.log("✓ Connected to PostgreSQL");
-
-    const schemaPath = path.join(__dirname, "../infrastructure/sql/schema.sql");
-    const schemaSql = fs.readFileSync(schemaPath, "utf-8");
-    console.log("▶ Running schema.sql...");
-    await client.query(schemaSql);
-    console.log("✓ Schema created\n");
-
-    console.log("✅ Database setup complete!");
-    console.log("   Run `pnpm run db:seed` to insert default data.");
+    const sql = fs.readFileSync(
+      path.join(__dirname, "../infrastructure/sql/schema.sql"),
+      "utf-8"
+    );
+    console.log("▶ Aplicando schema.sql...");
+    await client.query(sql);
+    console.log("✓ Schema aplicado\n");
+    console.log("✅ Setup completo. Siguiente: pnpm db:seed");
   } finally {
     client.release();
     await pool.end();
@@ -57,6 +45,6 @@ async function run() {
 }
 
 run().catch((err) => {
-  console.error("❌ Setup failed:", err.message);
+  console.error("❌ Error en setup:", err.message);
   process.exit(1);
 });
