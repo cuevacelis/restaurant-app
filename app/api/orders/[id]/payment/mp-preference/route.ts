@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOrderById } from "@/lib/db/queries/orders";
 import { getAllPaymentMethods } from "@/lib/db/queries/payments";
 import { createPreference } from "@/lib/mercadopago";
+import { handleApiError } from "@/lib/api-error";
 
 export async function POST(
   req: NextRequest,
@@ -9,13 +10,18 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const order = await getOrderById(id);
+
+    // Fetch order and payment methods in parallel
+    const [order, methods] = await Promise.all([
+      getOrderById(id),
+      getAllPaymentMethods(),
+    ]);
+
     if (!order) return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
-    if (!["completed"].includes(order.status)) {
+    if (order.status !== "completed") {
       return NextResponse.json({ error: "El pedido aún no está listo para pagar" }, { status: 400 });
     }
 
-    const methods = await getAllPaymentMethods();
     const mpMethod = methods.find((m) => m.type === "mercadopago" && m.active);
     if (!mpMethod) {
       return NextResponse.json({ error: "MercadoPago no está configurado" }, { status: 400 });
@@ -44,7 +50,6 @@ export async function POST(
       preference_id: preference.id,
     });
   } catch (error) {
-    console.error("MP preference error:", error);
-    return NextResponse.json({ error: "Error al crear preferencia de pago" }, { status: 500 });
+    return handleApiError(error, "POST /api/orders/[id]/payment/mp-preference error:");
   }
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMenuItems, createMenuItem } from "@/lib/db/queries/menu";
-import { getCategories } from "@/lib/db/queries/menu";
+import { getMenuItems, createMenuItem, getCategories } from "@/lib/db/queries/menu";
 import { requireRole } from "@/lib/auth";
+import { handleApiError } from "@/lib/api-error";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,15 +16,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ items, categories });
   } catch (error) {
-    console.error("GET /api/menu error:", error);
-    return NextResponse.json({ error: "Error al obtener menú" }, { status: 500 });
+    return handleApiError(error, "GET /api/menu error:");
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    await requireRole(["admin"]);
-    const data = await req.json();
+    const [, data] = await Promise.all([requireRole(["admin"]), req.json()]);
 
     if (!data.name || data.price === undefined) {
       return NextResponse.json(
@@ -35,14 +33,7 @@ export async function POST(req: NextRequest) {
 
     const item = await createMenuItem(data);
     return NextResponse.json({ item }, { status: 201 });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
-    console.error("POST /api/menu error:", error);
-    return NextResponse.json({ error: "Error al crear ítem" }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error, "POST /api/menu error:");
   }
 }

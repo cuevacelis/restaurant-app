@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addOrderReview, getOrderById } from "@/lib/db/queries/orders";
+import { handleApiError } from "@/lib/api-error";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const { rating, comment } = await req.json();
+    // params and body are independent — run in parallel
+    const [{ id }, { rating, comment }] = await Promise.all([params, req.json()]);
 
     if (!rating || rating < 1 || rating > 5) {
       return NextResponse.json(
@@ -16,7 +17,6 @@ export async function POST(
       );
     }
 
-    // Verify order exists and is completed
     const order = await getOrderById(id);
     if (!order) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     if (order.status !== "completed") {
@@ -29,7 +29,6 @@ export async function POST(
     const updated = await addOrderReview(id, { rating, comment });
     return NextResponse.json({ order: updated });
   } catch (error) {
-    console.error("POST /api/orders/[id]/review error:", error);
-    return NextResponse.json({ error: "Error al guardar reseña" }, { status: 500 });
+    return handleApiError(error, "POST /api/orders/[id]/review error:");
   }
 }

@@ -2,15 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { updateUser, deleteUser } from "@/lib/db/queries/auth";
 import { requireRole } from "@/lib/auth";
+import { handleApiError } from "@/lib/api-error";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole(["admin"]);
-    const { id } = await params;
-    const { name, role, active, password } = await req.json();
+    // auth, params, and body are all independent — run in parallel
+    const [, { id }, { name, role, active, password }] = await Promise.all([
+      requireRole(["admin"]),
+      params,
+      req.json(),
+    ]);
 
     const updateData: Parameters<typeof updateUser>[1] = {};
     if (name !== undefined) updateData.name = name;
@@ -24,12 +28,8 @@ export async function PATCH(
     return NextResponse.json({
       user: { id: user.id, username: user.username, role: user.role, name: user.name, active: user.active },
     });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
-    console.error("PATCH /api/users/[id] error:", error);
-    return NextResponse.json({ error: "Error al actualizar usuario" }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error, "PATCH /api/users/[id] error:");
   }
 }
 
@@ -38,15 +38,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole(["admin"]);
-    const { id } = await params;
+    // auth and params are independent — run in parallel
+    const [, { id }] = await Promise.all([requireRole(["admin"]), params]);
     await deleteUser(id);
     return NextResponse.json({ ok: true });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
-    console.error("DELETE /api/users/[id] error:", error);
-    return NextResponse.json({ error: "Error al eliminar usuario" }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error, "DELETE /api/users/[id] error:");
   }
 }

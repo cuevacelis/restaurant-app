@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getUserByUsername } from "@/lib/db/queries/auth";
 import { createSession } from "@/lib/auth";
+import { handleApiError } from "@/lib/api-error";
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +36,6 @@ export async function POST(req: NextRequest) {
       user: { id: user.id, username: user.username, role: user.role, name: user.name },
     });
   } catch (error) {
-    console.error("Login error:", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    return handleApiError(error, "POST /api/auth/login error:");
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTableById, updateTable, deleteTable } from "@/lib/db/queries/tables";
 import { requireRole } from "@/lib/auth";
+import { handleApiError } from "@/lib/api-error";
 
 export async function GET(
   _req: NextRequest,
@@ -12,8 +13,7 @@ export async function GET(
     if (!table) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     return NextResponse.json({ table });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Error al obtener mesa" }, { status: 500 });
+    return handleApiError(error, "GET /api/tables/[id] error:");
   }
 }
 
@@ -22,18 +22,17 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole(["admin"]);
-    const { id } = await params;
-    const data = await req.json();
+    // auth, params, and body are all independent — run in parallel
+    const [, { id }, data] = await Promise.all([
+      requireRole(["admin"]),
+      params,
+      req.json(),
+    ]);
     const table = await updateTable(id, data);
     if (!table) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     return NextResponse.json({ table });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
-    console.error(error);
-    return NextResponse.json({ error: "Error al actualizar mesa" }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error, "PATCH /api/tables/[id] error:");
   }
 }
 
@@ -42,15 +41,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole(["admin"]);
-    const { id } = await params;
+    // auth and params are independent — run in parallel
+    const [, { id }] = await Promise.all([requireRole(["admin"]), params]);
     await deleteTable(id);
     return NextResponse.json({ ok: true });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
-    console.error(error);
-    return NextResponse.json({ error: "Error al eliminar mesa" }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error, "DELETE /api/tables/[id] error:");
   }
 }

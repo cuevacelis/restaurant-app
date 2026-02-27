@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrderById } from "@/lib/db/queries/orders";
+import { handleApiError } from "@/lib/api-error";
 
 export async function GET(
   _req: NextRequest,
@@ -11,7 +12,6 @@ export async function GET(
     if (!order) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     return NextResponse.json({ order });
   } catch (error) {
-    console.error("GET /api/orders/[id] error:", error);
-    return NextResponse.json({ error: "Error al obtener pedido" }, { status: 500 });
+    return handleApiError(error, "GET /api/orders/[id] error:");
   }
 }

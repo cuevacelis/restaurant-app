@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
+import { handleApiError } from "@/lib/api-error";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  try {
+    const session = await requireSession();
+    return NextResponse.json({ user: session });
+  } catch (error) {
+    return handleApiError(error, "GET /api/auth/me error:");
   }
-  return NextResponse.json({ user: session });
 }

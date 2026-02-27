@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOrderById, updateOrderStatus } from "@/lib/db/queries/orders";
 import { getAllPaymentMethods } from "@/lib/db/queries/payments";
 import { getPaymentById } from "@/lib/mercadopago";
+import { handleApiError } from "@/lib/api-error";
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,7 +45,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("MP webhook error:", error);
-    return NextResponse.json({ error: "Webhook error" }, { status: 500 });
+    return handleApiError(error, "POST /api/webhooks/mercadopago error:");
   }
 }

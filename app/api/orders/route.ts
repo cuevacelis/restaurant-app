@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrders, createOrder } from "@/lib/db/queries/orders";
 import { getTableByNumber } from "@/lib/db/queries/tables";
+import { handleApiError } from "@/lib/api-error";
 import type { OrderStatus } from "@/lib/db/queries/orders";
 
 // UUID v4 regex
@@ -17,8 +18,7 @@ export async function GET(req: NextRequest) {
     const orders = await getOrders({ status, tableId, limit, offset });
     return NextResponse.json({ orders });
   } catch (error) {
-    console.error("GET /api/orders error:", error);
-    return NextResponse.json({ error: "Error al obtener pedidos" }, { status: 500 });
+    return handleApiError(error, "GET /api/orders error:");
   }
 }
 
@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
     const order = await createOrder(data);
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
-    console.error("POST /api/orders error:", error);
-    return NextResponse.json({ error: "Error al crear pedido" }, { status: 500 });
+    return handleApiError(error, "POST /api/orders error:");
   }
 }

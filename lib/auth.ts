@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { ApiError } from "./api-error";
 
 const SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback-secret-change-in-production-min32chars"
@@ -49,9 +50,7 @@ export async function deleteSession(): Promise<void> {
 
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
-  if (!session) {
-    throw new Error("Unauthorized");
-  }
+  if (!session) throw new ApiError(401, "No autenticado");
   return session;
 }
 
@@ -59,8 +58,6 @@ export async function requireRole(
   allowedRoles: Array<"admin" | "waiter" | "chef">
 ): Promise<SessionPayload> {
   const session = await requireSession();
-  if (!allowedRoles.includes(session.role)) {
-    throw new Error("Forbidden");
-  }
+  if (!allowedRoles.includes(session.role)) throw new ApiError(403, "Sin permiso");
   return session;
 }

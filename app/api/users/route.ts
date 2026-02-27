@@ -2,28 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getAllUsers, createUser } from "@/lib/db/queries/auth";
 import { requireRole } from "@/lib/auth";
+import { handleApiError } from "@/lib/api-error";
 
 export async function GET() {
   try {
     await requireRole(["admin"]);
     const users = await getAllUsers();
     return NextResponse.json({ users });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
-    console.error("GET /api/users error:", error);
-    return NextResponse.json({ error: "Error al obtener usuarios" }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error, "GET /api/users error:");
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    await requireRole(["admin"]);
-    const { username, password, role, name } = await req.json();
+    const [, { username, password, role, name }] = await Promise.all([
+      requireRole(["admin"]),
+      req.json(),
+    ]);
 
     if (!username || !password || !role || !name) {
       return NextResponse.json({ error: "Todos los campos son requeridos" }, { status: 400 });
@@ -40,15 +36,11 @@ export async function POST(req: NextRequest) {
       { user: { id: user.id, username: user.username, role: user.role, name: user.name } },
       { status: 201 }
     );
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
+  } catch (error) {
     const pgError = error as { code?: string };
     if (pgError.code === "23505") {
       return NextResponse.json({ error: "El nombre de usuario ya existe" }, { status: 409 });
     }
-    console.error("POST /api/users error:", error);
-    return NextResponse.json({ error: "Error al crear usuario" }, { status: 500 });
+    return handleApiError(error, "POST /api/users error:");
   }
 }
