@@ -36,7 +36,7 @@ export default function TablesPage() {
     (allActiveOrders?.orders ?? []).filter(
       (o) =>
         o.table_id === tableId &&
-        o.status !== "completed" &&
+        !["completed", "cancelled", "paid"].includes(o.status) &&
         o.order_type !== "takeout"
     );
 

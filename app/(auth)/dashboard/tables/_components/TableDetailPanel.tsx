@@ -52,9 +52,11 @@ export function TableDetailPanel({ table, orders, qrUrl, onOpenQr, onDelete }: P
               >
                 <div>
                   <p className="font-medium">{order.customer_name}</p>
-                  <p className={`text-xs ${getWaitTimeColor(order.created_at)}`}>
-                    {formatWaitTime(order.created_at)}
-                  </p>
+                  {!["completed", "cancelled", "paid"].includes(order.status) ? (
+                    <p className={`text-xs ${getWaitTimeColor(order.created_at)}`}>
+                      {formatWaitTime(order.created_at)}
+                    </p>
+                  ) : null}
                 </div>
                 <Badge className={ORDER_STATUS_COLORS[order.status]}>
                   {ORDER_STATUS_LABELS[order.status]}
