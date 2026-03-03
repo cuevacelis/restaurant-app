@@ -38,7 +38,7 @@ export function OrderCard({ order, onView, onMarkDelivered, updating }: Props) {
               {" · "}
               {formatRelativeTime(order.created_at)}
             </p>
-            {!["completed", "cancelled"].includes(order.status) && (
+            {!["completed", "cancelled", "paid"].includes(order.status) && (
               <p className={`text-xs font-medium mt-0.5 ${getWaitTimeColor(order.created_at)}`}>
                 Espera: {formatWaitTime(order.created_at)}
               </p>
