@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
+import { useRef } from "react";
+import { QRCodeCanvas } from "qrcode.react";
 import { Download, Printer, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,33 +22,18 @@ interface QrCodeDialogProps {
 export function QrCodeDialog({ open, onOpenChange, tableNumber, label, url }: QrCodeDialogProps) {
   const displayLabel = label ?? (tableNumber !== undefined ? `Mesa #${tableNumber}` : "Menú General");
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [dataUrl, setDataUrl] = useState<string>("");
 
-  useEffect(() => {
-    if (!open || !url) return;
-
-    QRCode.toCanvas(canvasRef.current!, url, {
-      width: 280,
-      margin: 2,
-      color: { dark: "#000000", light: "#ffffff" },
-      errorCorrectionLevel: "H",
-    }).catch(console.error);
-
-    QRCode.toDataURL(url, {
-      width: 600,
-      margin: 2,
-      errorCorrectionLevel: "H",
-    }).then(setDataUrl).catch(console.error);
-  }, [open, url]);
+  const getDataUrl = () => canvasRef.current?.toDataURL("image/png") ?? "";
 
   const handleDownload = () => {
     const a = document.createElement("a");
-    a.href = dataUrl;
+    a.href = getDataUrl();
     a.download = `${tableNumber !== undefined ? `mesa-${tableNumber}` : "menu-general"}-qr.png`;
     a.click();
   };
 
   const handlePrint = () => {
+    const dataUrl = getDataUrl();
     const win = window.open("", "_blank");
     if (!win) return;
     win.document.write(`
@@ -95,21 +80,26 @@ export function QrCodeDialog({ open, onOpenChange, tableNumber, label, url }: Qr
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-2">
-          {/* QR canvas */}
           <div className="rounded-xl border p-3 bg-white shadow-sm">
-            <canvas ref={canvasRef} />
+            {url ? (
+              <QRCodeCanvas
+                ref={canvasRef}
+                value={url}
+                size={280}
+                level="H"
+                marginSize={2}
+              />
+            ) : null}
           </div>
 
-          {/* URL legible */}
           <p className="text-xs text-muted-foreground text-center break-all px-2">{url}</p>
 
-          {/* Acciones */}
           <div className="flex gap-2 w-full">
             <Button
               variant="outline"
               className="flex-1"
               onClick={handleDownload}
-              disabled={!dataUrl}
+              disabled={!url}
             >
               <Download className="h-4 w-4 mr-1" />
               Descargar
@@ -117,7 +107,7 @@ export function QrCodeDialog({ open, onOpenChange, tableNumber, label, url }: Qr
             <Button
               className="flex-1"
               onClick={handlePrint}
-              disabled={!dataUrl}
+              disabled={!url}
             >
               <Printer className="h-4 w-4 mr-1" />
               Imprimir
