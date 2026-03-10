@@ -1,6 +1,14 @@
 import { query, queryOne } from "@/lib/db";
-import bcrypt from "bcryptjs";
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID, scryptSync } from "crypto";
+
+// Must match Better Auth's hashPassword format: "<hex-salt>:<hex-key>"
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const key = scryptSync(password.normalize("NFKC"), salt, 64, {
+    N: 16384, r: 16, p: 1, maxmem: 67108864,
+  });
+  return `${salt}:${key.toString("hex")}`;
+}
 
 export interface DbUser {
   id: string;
@@ -44,7 +52,7 @@ export async function createUser(data: {
   name: string;
 }): Promise<DbUser> {
   const userId = randomUUID();
-  const passwordHash = await bcrypt.hash(data.password, 10);
+  const passwordHash = hashPassword(data.password);
 
   const rows = await query<DbUser>(
     `INSERT INTO users (id, username, name, email, email_verified, role, active, created_at, updated_at)
@@ -86,7 +94,7 @@ export async function updateUser(
   }
 
   if (data.password) {
-    const passwordHash = await bcrypt.hash(data.password, 10);
+    const passwordHash = hashPassword(data.password);
     await query(
       `UPDATE accounts SET password = $1, updated_at = NOW()
        WHERE user_id = $2 AND provider_id = 'credential'`,

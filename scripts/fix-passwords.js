@@ -1,16 +1,26 @@
 #!/usr/bin/env node
 /**
- * db:fix-passwords — Resetea las contraseñas de los usuarios al valor por defecto
+ * db:fix-pass — Resetea las contraseñas de los usuarios al valor por defecto.
+ * Actualiza la tabla `accounts` con el formato scrypt que usa Better Auth.
  */
 const readline = require("readline");
-const bcrypt = require("bcryptjs");
+const { scryptSync, randomBytes } = require("crypto");
 const { createPool } = require("./lib/db");
 
 const USERS = [
-  { username: "admin",   password: "admin123", role: "admin",  name: "Administrador" },
-  { username: "waiter1", password: "password", role: "waiter", name: "Carlos Mesero" },
-  { username: "chef1",   password: "password", role: "chef",   name: "Ana Cocinera"  },
+  { username: "admin",   password: "admin123" },
+  { username: "waiter1", password: "password" },
+  { username: "chef1",   password: "password" },
 ];
+
+// Must match Better Auth's hashPassword: "<hex-salt>:<hex-key>"
+function hashPassword(password) {
+  const salt = randomBytes(16).toString("hex");
+  const key = scryptSync(password.normalize("NFKC"), salt, 64, {
+    N: 16384, r: 16, p: 1, maxmem: 67108864,
+  });
+  return `${salt}:${key.toString("hex")}`;
+}
 
 function confirm(question) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -30,15 +40,19 @@ async function run() {
   const client = await pool.connect();
   try {
     for (const u of USERS) {
-      const hash = await bcrypt.hash(u.password, 10);
-      await client.query(
-        `INSERT INTO users (username, password_hash, role, name)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (username)
-         DO UPDATE SET password_hash = EXCLUDED.password_hash, active = TRUE`,
-        [u.username, hash, u.role, u.name]
+      const hash = hashPassword(u.password);
+      const { rowCount } = await client.query(
+        `UPDATE accounts
+         SET password = $1, updated_at = NOW()
+         WHERE user_id = (SELECT id FROM users WHERE username = $2)
+           AND provider_id = 'credential'`,
+        [hash, u.username]
       );
-      console.log(`  ✓ ${u.username.padEnd(8)} → ${u.password}`);
+      if (rowCount > 0) {
+        console.log(`  ✓ ${u.username.padEnd(8)} → ${u.password}`);
+      } else {
+        console.log(`  ✗ ${u.username.padEnd(8)} → no encontrado en accounts`);
+      }
     }
     console.log("\n✅ Contraseñas reseteadas.");
   } finally {
