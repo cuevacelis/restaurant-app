@@ -28,7 +28,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ROLE_LABELS } from "@/lib/utils";
-import type { SessionPayload } from "@/lib/auth";
+import { signOut } from "@/lib/auth-client";
+import type { User } from "@/lib/auth";
 
 interface NavItem {
   title: string;
@@ -95,7 +96,7 @@ const navItems: NavItem[] = [
 ];
 
 interface AppSidebarProps {
-  session: SessionPayload;
+  session: User;
 }
 
 export function AppSidebar({ session }: AppSidebarProps) {
@@ -106,8 +107,7 @@ export function AppSidebar({ session }: AppSidebarProps) {
   );
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/login";
+    await signOut({ fetchOptions: { onSuccess: () => { window.location.href = "/login"; } } });
   };
 
   return (

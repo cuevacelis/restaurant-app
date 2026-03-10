@@ -46,6 +46,7 @@ export function OrderDetailDialog({ orderId, onClose }: Props) {
   const tables = tablesData?.tables ?? [];
   const menuItems = menuData?.items ?? [];
 
+  // pending_verification también es editable (el mesero puede ajustar el pedido antes de verificar)
   const isEditable = order && !["completed", "cancelled", "paid"].includes(order.status);
 
   const startEditing = () => {
@@ -54,7 +55,7 @@ export function OrderDetailDialog({ orderId, onClose }: Props) {
       order.items.map((i) => ({
         id: i.id,
         menu_item_id: i.menu_item_id,
-        menu_item_name: i.menu_item_name,
+        menu_item_name: i.menu_item_name ?? "",
         quantity: i.quantity,
         unit_price: parseFloat(i.unit_price),
       }))
@@ -120,7 +121,7 @@ export function OrderDetailDialog({ orderId, onClose }: Props) {
               defaultValue={order.table_id ?? ""}
               disabled={changingTable}
               onChange={(e) =>
-                changeTable({ orderId: order.id, tableId: e.target.value || null })
+                changeTable({ orderId: order.id, table_id: e.target.value || null })
               }
             >
               <option value="">Para llevar</option>
@@ -307,6 +308,19 @@ export function OrderDetailDialog({ orderId, onClose }: Props) {
               Cancelar pedido
             </Button>
           )}
+          {order.status === "pending_verification" && canEdit && (
+            <Button
+              size="sm"
+              className="flex-1 border-orange-400 text-orange-700 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-950"
+              variant="outline"
+              onClick={() =>
+                updateStatus({ id: order.id, status: "pending" }, { onSuccess: onClose })
+              }
+              disabled={updatingStatus}
+            >
+              {updatingStatus ? "..." : "✓ Verificar pedido"}
+            </Button>
+          )}
           {order.status === "ready_to_deliver" && (
             <Button
               size="sm"
@@ -323,7 +337,7 @@ export function OrderDetailDialog({ orderId, onClose }: Props) {
             <Button
               size="sm"
               className="flex-1"
-              onClick={() => markPaid({ id: order.id }, { onSuccess: onClose })}
+              onClick={() => markPaid({ id: order.id, status: "paid" }, { onSuccess: onClose })}
               disabled={markingPaid}
             >
               {markingPaid ? "..." : "Marcar como pagado"}

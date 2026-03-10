@@ -1,35 +1,27 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
-import type { PaymentMethod } from "../_components/_types";
+import type { RouterOutputs } from "@/trpc/routers/_app";
 
-async function fetchMethods(): Promise<{ methods: PaymentMethod[] }> {
-  const res = await fetch("/api/payment-methods");
-  if (!res.ok) throw new Error("Error al cargar");
-  return res.json();
-}
-
-async function deleteMethod(id: string) {
-  const res = await fetch(`/api/payment-methods/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error al eliminar");
-}
+export type PaymentMethod = RouterOutputs["payments"]["listAdmin"]["methods"][number];
 
 export function usePaymentMethods() {
-  return useQuery({
-    queryKey: ["payment-methods", "admin"],
-    queryFn: fetchMethods,
-  });
+  const trpc = useTRPC();
+  return useQuery(trpc.payments.listAdmin.queryOptions());
 }
 
 export function useDeletePaymentMethod() {
-  const qc = useQueryClient();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteMethod,
-    onSuccess: () => {
-      toast.success("Método desactivado");
-      qc.invalidateQueries({ queryKey: ["payment-methods", "admin"] });
-    },
-    onError: (err: Error) => toast.error(err.message),
+    ...trpc.payments.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success("Método desactivado");
+        queryClient.invalidateQueries(trpc.payments.pathFilter());
+      },
+      onError: (err) => toast.error(err.message),
+    }),
   });
 }

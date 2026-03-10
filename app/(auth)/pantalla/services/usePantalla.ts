@@ -1,20 +1,24 @@
 "use client";
 
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useOrders } from "@/app/(auth)/dashboard/orders/services/useOrders";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 export function usePantalla() {
-  const qc = useQueryClient();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  const { data } = useOrders({});
+  const { data } = useQuery({
+    ...trpc.orders.list.queryOptions(),
+    refetchInterval: 15000,
+  });
 
   useWebSocket({
     role: "customer",
     onMessage: (msg) => {
       if (msg.type === "ORDER_UPDATE") {
-        qc.invalidateQueries({ queryKey: ["orders"] });
+        queryClient.invalidateQueries(trpc.orders.list.pathFilter());
       }
     },
   });
@@ -24,19 +28,15 @@ export function usePantalla() {
     if ("wakeLock" in navigator) {
       (navigator.wakeLock as WakeLock)
         .request("screen")
-        .then((wl) => {
-          wakeLock = wl;
-        })
+        .then((wl) => { wakeLock = wl; })
         .catch(() => {});
     }
-    return () => {
-      wakeLock?.release();
-    };
+    return () => { wakeLock?.release(); };
   }, []);
 
   const orders = data?.orders ?? [];
   const activeOrders = orders.filter(
-    (o) => !["completed", "cancelled"].includes(o.status),
+    (o) => !["completed", "cancelled"].includes(o.status)
   );
 
   return { activeOrders };

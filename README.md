@@ -113,7 +113,8 @@ DB_PASSWORD=
 DB_NAME=restaurant
 
 # Auth
-JWT_SECRET=cambia-esto-en-produccion-minimo-32-chars
+BETTER_AUTH_SECRET=cambia-esto-en-produccion-minimo-32-chars
+BETTER_AUTH_URL=http://localhost:3000
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000

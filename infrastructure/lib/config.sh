@@ -1,17 +1,22 @@
 # ── Configuración (sobreescribible desde .env.local o variables de entorno) ───
 PROFILE="${AWS_PROFILE:-default}"
 REGION="${AWS_REGION:-us-east-1}"
-STAGE="${AWS_STAGE:-prod}"
+STAGE="${AWS_STAGE:-dev}"
 RDS_INSTANCE_ID="${AWS_RDS_INSTANCE_ID:-restaurant}"
 
-CONNECTIONS_TABLE="RestaurantWebSocketConnections"
-WS_API_NAME="restaurant-websocket-api"
-CONNECT_FN="restaurant-ws-connect"
-DISCONNECT_FN="restaurant-ws-disconnect"
-BROADCAST_FN="restaurant-ws-broadcast"
-TRIGGER_FN="restaurant-db-trigger"
-LAMBDA_ROLE_NAME="restaurant-lambda-role"
-RDS_LAMBDA_ROLE_NAME="restaurant-rds-lambda-role"
+if [[ "$STAGE" != "dev" && "$STAGE" != "prd" ]]; then
+  echo "Error: STAGE debe ser 'dev' o 'prd' (recibido: '$STAGE')" >&2
+  exit 1
+fi
+
+CONNECTIONS_TABLE="RestaurantWebSocketConnections-${STAGE}"
+WS_API_NAME="restaurant-websocket-api-${STAGE}"
+CONNECT_FN="restaurant-ws-connect-${STAGE}"
+DISCONNECT_FN="restaurant-ws-disconnect-${STAGE}"
+BROADCAST_FN="restaurant-ws-broadcast-${STAGE}"
+TRIGGER_FN="restaurant-db-trigger-${STAGE}"
+LAMBDA_ROLE_NAME="restaurant-lambda-role-${STAGE}"
+RDS_LAMBDA_ROLE_NAME="restaurant-rds-lambda-role-${STAGE}"
 
 # ── Colores ───────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'

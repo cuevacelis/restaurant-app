@@ -66,6 +66,7 @@ export default function OrdersPage() {
               key={order.id}
               order={order}
               onView={() => setParam("orderId", order.id)}
+              onVerify={() => updateStatus({ id: order.id, status: "pending" })}
               onMarkDelivered={() => updateStatus({ id: order.id, status: "completed" })}
               updating={updating}
             />

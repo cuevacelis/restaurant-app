@@ -10,16 +10,64 @@ CREATE EXTENSION IF NOT EXISTS "aws_lambda" CASCADE;  -- For DB → Lambda trigg
 
 -- ============================================================
 -- USERS (staff: admin, waiter, chef)
+-- Managed by Better Auth. Passwords stored in accounts table.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS users (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username      VARCHAR(50)  UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  role          VARCHAR(20)  NOT NULL CHECK (role IN ('admin', 'waiter', 'chef')),
-  name          VARCHAR(100) NOT NULL,
-  active        BOOLEAN      DEFAULT TRUE,
-  created_at    TIMESTAMPTZ  DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ  DEFAULT NOW()
+  id             TEXT         PRIMARY KEY,
+  name           VARCHAR(100) NOT NULL,
+  email          TEXT         UNIQUE,
+  email_verified BOOLEAN      NOT NULL DEFAULT FALSE,
+  image          TEXT,
+  username       TEXT         UNIQUE,
+  role           TEXT         NOT NULL DEFAULT 'waiter' CHECK (role IN ('admin', 'waiter', 'chef')),
+  active         BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- BETTER AUTH: sessions
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sessions (
+  id          TEXT        PRIMARY KEY,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  token       TEXT        NOT NULL UNIQUE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ip_address  TEXT,
+  user_agent  TEXT,
+  user_id     TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- BETTER AUTH: accounts (credentials + OAuth)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS accounts (
+  id                       TEXT        PRIMARY KEY,
+  account_id               TEXT        NOT NULL,
+  provider_id              TEXT        NOT NULL,
+  user_id                  TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  access_token             TEXT,
+  refresh_token            TEXT,
+  id_token                 TEXT,
+  access_token_expires_at  TIMESTAMPTZ,
+  refresh_token_expires_at TIMESTAMPTZ,
+  scope                    TEXT,
+  password                 TEXT,
+  created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- BETTER AUTH: verifications
+-- ============================================================
+CREATE TABLE IF NOT EXISTS verifications (
+  id         TEXT        PRIMARY KEY,
+  identifier TEXT        NOT NULL,
+  value      TEXT        NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================================
@@ -83,13 +131,13 @@ CREATE TABLE IF NOT EXISTS orders (
   table_id              UUID         REFERENCES restaurant_tables(id) ON DELETE SET NULL,
   customer_name         VARCHAR(100) NOT NULL,
   order_type            VARCHAR(20)  NOT NULL CHECK (order_type IN ('dine_in', 'takeout')),
-  status                VARCHAR(30)  NOT NULL DEFAULT 'pending'
-                          CHECK (status IN ('pending', 'in_preparation', 'ready_to_deliver', 'completed', 'cancelled', 'paid')),
+  status                VARCHAR(30)  NOT NULL DEFAULT 'pending_verification'
+                          CHECK (status IN ('pending_verification', 'pending', 'in_preparation', 'ready_to_deliver', 'completed', 'cancelled', 'paid')),
   notes                 TEXT,
   total_amount          NUMERIC(10,2) DEFAULT 0,
   rating                SMALLINT     CHECK (rating >= 1 AND rating <= 5),
   review_comment        TEXT,
-  delivered_by_user_id  UUID         REFERENCES users(id),
+  delivered_by_user_id  TEXT         REFERENCES users(id),
   payment_method_id     UUID         REFERENCES payment_methods(id),
   payment_intent_id     VARCHAR(255),
   paid_at               TIMESTAMPTZ,
@@ -142,4 +190,17 @@ CREATE OR REPLACE TRIGGER set_orders_updated_at
 
 CREATE OR REPLACE TRIGGER set_payment_methods_updated_at
   BEFORE UPDATE ON payment_methods
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- RESTAURANT CONFIG (key/value settings)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS restaurant_config (
+  key        VARCHAR(100) PRIMARY KEY,
+  value      TEXT         NOT NULL,
+  updated_at TIMESTAMPTZ  DEFAULT NOW()
+);
+
+CREATE OR REPLACE TRIGGER set_restaurant_config_updated_at
+  BEFORE UPDATE ON restaurant_config
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

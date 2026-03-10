@@ -1,10 +1,11 @@
-import { Clock, ChefHat, PackageCheck, CheckCircle, CreditCard } from "lucide-react";
+import { ScanSearch, Clock, ChefHat, PackageCheck, CheckCircle, CreditCard } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ORDER_STATUS_LABELS } from "@/lib/utils";
 import type { Order } from "../../_services/useOrder";
 
 const STATUS_ICONS = {
+  pending_verification: ScanSearch,
   pending: Clock,
   in_preparation: ChefHat,
   ready_to_deliver: PackageCheck,
@@ -12,7 +13,7 @@ const STATUS_ICONS = {
   paid: CreditCard,
 };
 
-const STATUS_STEPS = ["pending", "in_preparation", "ready_to_deliver", "completed", "paid"] as const;
+const STATUS_STEPS = ["pending_verification", "pending", "in_preparation", "ready_to_deliver", "completed", "paid"] as const;
 
 interface StatusTrackerProps {
   status: Order["status"];

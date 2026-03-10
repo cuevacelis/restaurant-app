@@ -7,11 +7,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: string | number): string {
+// currency y locale se leen de restaurant_config en DB (currency_code / currency_locale).
+// Por defecto usan PEN / es-PE. A futuro se pueden pasar desde un contexto global
+// o por plato individualmente.
+export function formatCurrency(
+  amount: string | number,
+  currency = "PEN",
+  locale = "es-PE"
+): string {
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  return new Intl.NumberFormat("es-MX", {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "MXN",
+    currency,
     minimumFractionDigits: 2,
   }).format(num);
 }
@@ -37,23 +44,8 @@ export function getWaitTimeColor(createdAt: string | Date): string {
   return "text-red-600 dark:text-red-400";
 }
 
-export const ORDER_STATUS_LABELS: Record<string, string> = {
-  pending: "Pendiente",
-  in_preparation: "En preparación",
-  ready_to_deliver: "Listo para entregar",
-  completed: "Entregado",
-  cancelled: "Cancelado",
-  paid: "Pagado",
-};
-
-export const ORDER_STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  in_preparation: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  ready_to_deliver: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  completed: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-  cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-  paid: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-};
+// Re-exportados desde lib/order-status.ts — no duplicar aquí.
+export { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/db/order-status";
 
 export const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",

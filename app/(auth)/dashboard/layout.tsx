@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import {
   SidebarProvider,
   SidebarInset,
@@ -16,12 +17,14 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  if (!session) redirect("/login");
+  const result = await auth.api.getSession({ headers: await headers() });
+  if (!result) redirect("/login");
+
+  const user = result.user as import("@/lib/auth").User;
 
   return (
     <SidebarProvider>
-      <AppSidebar session={session} />
+      <AppSidebar session={user} />
       <SidebarInset>
         {/* Top bar */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
@@ -29,7 +32,7 @@ export default async function DashboardLayout({
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex-1" />
           <div className="flex items-center gap-1">
-            <DashboardNotificationWrapper session={session} />
+            <DashboardNotificationWrapper session={user} />
             <ThemeToggle />
           </div>
         </header>

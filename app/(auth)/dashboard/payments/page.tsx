@@ -64,7 +64,7 @@ export default function PaymentsPage() {
               key={m.id}
               method={m}
               onEdit={() => openEdit(m)}
-              onDelete={() => deleteMethod(m.id)}
+              onDelete={() => deleteMethod({ id: m.id })}
             />
           ))}
         </div>

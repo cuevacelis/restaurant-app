@@ -1,63 +1,79 @@
-import { cookies } from "next/headers";
-import { SignJWT, jwtVerify } from "jose";
-import { ApiError } from "./api-error";
+import { betterAuth } from "better-auth";
+import { username } from "better-auth/plugins";
+import { Pool } from "pg";
 
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback-secret-change-in-production-min32chars"
-);
+const pool = new Pool({
+  host: process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT || "5432"),
+  user: process.env.DB_USER || "postgres",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "restaurant",
+  ssl: process.env.DB_SSL === "false" ? false : { rejectUnauthorized: false },
+  max: 5,
+});
 
-export interface SessionPayload {
-  userId: string;
-  username: string;
+export const auth = betterAuth({
+  database: pool,
+  plugins: [username()],
+  emailAndPassword: {
+    enabled: false,
+  },
+  user: {
+    modelName: "users",
+    fields: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      emailVerified: "email_verified",
+    },
+    additionalFields: {
+      role: {
+        type: "string",
+        required: true,
+        defaultValue: "waiter",
+      },
+      active: {
+        type: "boolean",
+        required: true,
+        defaultValue: true,
+      },
+    },
+  },
+  session: {
+    modelName: "sessions",
+    fields: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      expiresAt: "expires_at",
+      ipAddress: "ip_address",
+      userAgent: "user_agent",
+      userId: "user_id",
+    },
+  },
+  account: {
+    modelName: "accounts",
+    fields: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      accountId: "account_id",
+      providerId: "provider_id",
+      userId: "user_id",
+      accessToken: "access_token",
+      refreshToken: "refresh_token",
+      idToken: "id_token",
+      accessTokenExpiresAt: "access_token_expires_at",
+      refreshTokenExpiresAt: "refresh_token_expires_at",
+    },
+  },
+  advanced: {
+    database: {
+      generateId: () => crypto.randomUUID(),
+    },
+  },
+});
+
+export type Session = typeof auth.$Infer.Session;
+export type User = typeof auth.$Infer.Session.user & {
   role: "admin" | "waiter" | "chef";
-  name: string;
-}
-
-export async function createSession(payload: SessionPayload): Promise<void> {
-  const token = await new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(SECRET);
-
-  const cookieStore = await cookies();
-  cookieStore.set("session", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: "/",
-  });
-}
-
-export async function getSession(): Promise<SessionPayload | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-  if (!token) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, SECRET);
-    return payload as unknown as SessionPayload;
-  } catch {
-    return null;
-  }
-}
-
-export async function deleteSession(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete("session");
-}
-
-export async function requireSession(): Promise<SessionPayload> {
-  const session = await getSession();
-  if (!session) throw new ApiError(401, "No autenticado");
-  return session;
-}
-
-export async function requireRole(
-  allowedRoles: Array<"admin" | "waiter" | "chef">
-): Promise<SessionPayload> {
-  const session = await requireSession();
-  if (!allowedRoles.includes(session.role)) throw new ApiError(403, "Sin permiso");
-  return session;
-}
+  active: boolean;
+  username: string;
+};

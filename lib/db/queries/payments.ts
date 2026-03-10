@@ -40,7 +40,7 @@ export async function createPaymentMethod(data: {
   name: string;
   type: "manual" | "mercadopago";
   display_text?: string;
-  config?: Record<string, string>;
+  config?: Record<string, unknown>;
   sort_order?: number;
 }): Promise<DbPaymentMethod> {
   const rows = await query<DbPaymentMethod>(
@@ -63,7 +63,7 @@ export async function updatePaymentMethod(
     name: string;
     type: "manual" | "mercadopago";
     display_text: string | null;
-    config: Record<string, string>;
+    config: Record<string, unknown>;
     active: boolean;
     sort_order: number;
   }>

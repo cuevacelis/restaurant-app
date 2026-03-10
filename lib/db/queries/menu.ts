@@ -47,7 +47,7 @@ export async function createCategory(data: {
 
 export async function updateCategory(
   id: string,
-  data: Partial<{ name: string; description: string; order_index: number; active: boolean }>
+  data: Partial<{ name: string; description: string | null; order_index: number; active: boolean }>
 ): Promise<DbCategory | null> {
   const sets: string[] = [];
   const values: unknown[] = [];
@@ -133,11 +133,11 @@ export async function createMenuItem(data: {
 export async function updateMenuItem(
   id: string,
   data: Partial<{
-    category_id: string;
+    category_id: string | null;
     name: string;
-    description: string;
+    description: string | null;
     price: number;
-    image_url: string;
+    image_url: string | null;
     available: boolean;
   }>
 ): Promise<DbMenuItem | null> {

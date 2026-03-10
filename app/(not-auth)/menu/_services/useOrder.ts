@@ -1,7 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
+import type { RouterOutputs } from "@/trpc/routers/_app";
+
+export type Order = RouterOutputs["orders"]["getById"]["order"];
 
 export interface OrderItem {
   menu_item_id: string;
@@ -19,117 +23,67 @@ export interface CreateOrderPayload {
   items: Omit<OrderItem, "name">[];
 }
 
-export interface Order {
-  id: string;
-  table_id: string | null;
-  table_number?: number | null;
-  customer_name: string;
-  order_type: "dine_in" | "takeout";
-  status: "pending" | "in_preparation" | "ready_to_deliver" | "completed" | "cancelled" | "paid";
-  notes: string | null;
-  total_amount: string;
-  rating: number | null;
-  review_comment: string | null;
-  created_at: string;
-  updated_at: string;
-  items?: Array<{
-    id: string;
-    menu_item_id: string;
-    menu_item_name: string;
-    quantity: number;
-    unit_price: string;
-    notes: string | null;
-  }>;
-}
-
-async function createOrderFn(payload: CreateOrderPayload): Promise<{ order: Order }> {
-  const res = await fetch("/api/orders", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.error || "Error al crear pedido");
-  }
-  return res.json();
-}
-
-async function fetchOrder(id: string): Promise<{ order: Order }> {
-  const res = await fetch(`/api/orders/${id}`);
-  if (!res.ok) throw new Error("Error al cargar pedido");
-  return res.json();
-}
-
-async function submitReview(orderId: string, rating: number, comment?: string) {
-  const res = await fetch(`/api/orders/${orderId}/review`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rating, comment }),
-  });
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.error || "Error al enviar reseña");
-  }
-  return res.json();
-}
-
 export function useCreateOrder() {
+  const trpc = useTRPC();
   return useMutation({
-    mutationFn: createOrderFn,
-    onSuccess: () => {
-      toast.success("¡Pedido enviado! Estamos preparando tu orden.");
-    },
-    onError: (err: Error) => {
-      toast.error(err.message);
-    },
+    ...trpc.orders.create.mutationOptions({
+      onSuccess: () => toast.success("¡Pedido enviado! Estamos preparando tu orden."),
+      onError: (err) => toast.error(err.message),
+    }),
   });
 }
 
 export function useOrder(orderId: string | null, enabled = true) {
+  const trpc = useTRPC();
   return useQuery({
-    queryKey: ["order", orderId],
-    queryFn: () => fetchOrder(orderId!),
+    ...trpc.orders.getById.queryOptions({ id: orderId! }),
     enabled: !!orderId && enabled,
-    refetchInterval: 10000, // poll every 10s as fallback
+    refetchInterval: 10000,
   });
 }
 
 export function useAddOrderItems(orderId: string) {
+  const trpc = useTRPC();
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (items: Omit<OrderItem, "name">[]) => {
-      const res = await fetch(`/api/orders/${orderId}/items`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error al agregar ítems");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      toast.success("¡Ítems agregados a tu pedido!");
-      queryClient.invalidateQueries({ queryKey: ["order", orderId] });
-    },
-    onError: (err: Error) => toast.error(err.message),
-  });
+  const mutation = useMutation(
+    trpc.orders.appendItems.mutationOptions({
+      onSuccess: () => {
+        toast.success("¡Ítems agregados a tu pedido!");
+        queryClient.invalidateQueries({ queryKey: trpc.orders.getById.queryKey({ id: orderId }) });
+      },
+      onError: (err) => toast.error(err.message),
+    })
+  );
+  type AppendItems = Array<{ menu_item_id: string; quantity: number; unit_price: number; notes?: string }>;
+  type MutOpts = Parameters<typeof mutation.mutate>[1];
+  return {
+    ...mutation,
+    mutate: (items: AppendItems, opts?: MutOpts) =>
+      mutation.mutate({ orderId, items }, opts),
+    mutateAsync: (items: AppendItems, opts?: Parameters<typeof mutation.mutateAsync>[1]) =>
+      mutation.mutateAsync({ orderId, items }, opts),
+  };
 }
 
 export function useSubmitReview(orderId: string) {
+  const trpc = useTRPC();
   const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ rating, comment }: { rating: number; comment?: string }) =>
-      submitReview(orderId, rating, comment),
-    onSuccess: () => {
-      toast.success("¡Gracias por tu calificación!");
-      queryClient.invalidateQueries({ queryKey: ["order", orderId] });
-    },
-    onError: (err: Error) => {
-      toast.error(err.message);
-    },
-  });
+  const mutation = useMutation(
+    trpc.orders.submitReview.mutationOptions({
+      onSuccess: () => {
+        toast.success("¡Gracias por tu calificación!");
+        queryClient.invalidateQueries({ queryKey: trpc.orders.getById.queryKey({ id: orderId }) });
+      },
+      onError: (err) => toast.error(err.message),
+    })
+  );
+  type ReviewInput = { rating: number; comment?: string };
+  type MutOpts = Parameters<typeof mutation.mutate>[1];
+  return {
+    ...mutation,
+    mutate: (input: ReviewInput, opts?: MutOpts) =>
+      mutation.mutate({ orderId, ...input }, opts),
+    mutateAsync: (input: ReviewInput, opts?: Parameters<typeof mutation.mutateAsync>[1]) =>
+      mutation.mutateAsync({ orderId, ...input }, opts),
+  };
 }

@@ -1,4 +1,5 @@
-import { getSession } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { getOrders, getOrderStats } from "@/lib/db/queries/orders";
 import { getTables } from "@/lib/db/queries/tables";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,8 @@ import {
 } from "@/lib/utils";
 
 export default async function DashboardPage() {
-  const session = await getSession();
+  const sessionResult = await auth.api.getSession({ headers: await headers() });
+  const session = sessionResult?.user;
 
   const [stats, recentOrders, tables] = await Promise.all([
     getOrderStats(),

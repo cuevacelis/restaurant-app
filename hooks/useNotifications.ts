@@ -39,6 +39,10 @@ export function useNotifications({
     let message = "";
 
     switch (data.status) {
+      case "pending_verification":
+        title = "Pedido por verificar";
+        message = `${data.table_id ? `Mesa #${data.table_id}` : "Para llevar"} - ${data.customer_name} — acércate a confirmar`;
+        break;
       case "pending":
         title = "Nuevo pedido";
         message = `${data.table_id ? `Mesa #${data.table_id}` : "Para llevar"} - ${data.customer_name}`;

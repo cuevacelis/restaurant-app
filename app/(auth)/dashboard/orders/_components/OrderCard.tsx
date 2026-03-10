@@ -17,11 +17,12 @@ import type { Order } from "../services/useOrders";
 interface Props {
   order: Order;
   onView: () => void;
+  onVerify: () => void;
   onMarkDelivered: () => void;
   updating: boolean;
 }
 
-export function OrderCard({ order, onView, onMarkDelivered, updating }: Props) {
+export function OrderCard({ order, onView, onVerify, onMarkDelivered, updating }: Props) {
   return (
     <Card className="hover:bg-muted/20 transition-colors cursor-pointer">
       <CardContent className="p-4">
@@ -53,6 +54,12 @@ export function OrderCard({ order, onView, onMarkDelivered, updating }: Props) {
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onView}>
               <Eye className="h-4 w-4" />
             </Button>
+            {order.status === "pending_verification" && (
+              <Button size="sm" variant="outline" onClick={onVerify} disabled={updating}
+                className="border-orange-400 text-orange-700 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-950">
+                Verificar
+              </Button>
+            )}
             {order.status === "ready_to_deliver" && (
               <Button size="sm" onClick={onMarkDelivered} disabled={updating}>
                 Entregar

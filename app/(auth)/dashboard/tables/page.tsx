@@ -88,7 +88,7 @@ export default function TablesPage() {
             setQrTable({ number: selectedTable.number, url: qrUrl(selectedTable.number) })
           }
           onDelete={() => {
-            deleteTable(selectedTable.id);
+            deleteTable({ id: selectedTable.id });
             setTableParam(null);
           }}
         />

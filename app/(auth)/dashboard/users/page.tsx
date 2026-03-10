@@ -23,14 +23,20 @@ export default function UsersPage() {
   const closeDialog = () => setDialog({ open: false });
 
   const handleCreate = (form: UserForm) => {
-    createUser(form, { onSuccess: closeDialog });
+    createUser(
+      { ...form, role: form.role as "admin" | "waiter" | "chef" },
+      { onSuccess: closeDialog }
+    );
   };
 
   const handleUpdate = (
     id: string,
     data: Partial<{ name: string; role: string; active: boolean; password: string }>
   ) => {
-    updateUser({ id, data }, { onSuccess: closeDialog });
+    updateUser(
+      { id, ...data, role: data.role as "admin" | "waiter" | "chef" | undefined },
+      { onSuccess: closeDialog }
+    );
   };
 
   return (
@@ -56,7 +62,7 @@ export default function UsersPage() {
               user={user}
               onEdit={() => openEdit(user)}
               onDelete={() => {
-                if (confirm(`¿Desactivar a ${user.name}?`)) deleteUser(user.id);
+                if (confirm(`¿Desactivar a ${user.name}?`)) deleteUser({ id: user.id });
               }}
             />
           ))}

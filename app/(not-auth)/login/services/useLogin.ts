@@ -1,46 +1,29 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-interface LoginPayload {
-  username: string;
-  password: string;
-}
-
-interface LoginResponse {
-  user: {
-    id: string;
-    username: string;
-    role: string;
-    name: string;
-  };
-}
-
-async function loginFn(payload: LoginPayload): Promise<LoginResponse> {
-  const res = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.error || "Error al iniciar sesión");
-  }
-
-  return res.json();
-}
+import { signIn } from "@/lib/auth-client";
 
 export function useLogin() {
-  return useMutation({
-    mutationFn: loginFn,
-    onSuccess: () => {
-      toast.success("Sesión iniciada correctamente");
-      window.location.href = "/dashboard";
-    },
-    onError: (err: Error) => {
-      toast.error(err.message);
-    },
-  });
+  const login = async (data: { username: string; password: string }) => {
+    const result = await signIn.username({
+      username: data.username,
+      password: data.password,
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("Sesión iniciada correctamente");
+          window.location.href = "/dashboard";
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message || "Error al iniciar sesión");
+        },
+      },
+    });
+    return result;
+  };
+
+  return {
+    mutate: login,
+    mutateAsync: login,
+    isPending: false, // Better Auth handles loading state internally
+  };
 }

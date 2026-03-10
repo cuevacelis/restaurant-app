@@ -1,7 +1,8 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { PoolClient } from "pg";
 
-export type OrderStatus = "pending" | "in_preparation" | "ready_to_deliver" | "completed" | "cancelled" | "paid";
+import type { OrderStatus } from "@/lib/db/order-status";
+export type { OrderStatus };
 export type OrderType = "dine_in" | "takeout";
 
 export interface DbOrderItem {
@@ -101,6 +102,7 @@ export async function createOrder(data: {
   customer_name: string;
   order_type: OrderType;
   notes?: string;
+  status?: OrderStatus;
   items: Array<{
     menu_item_id: string;
     quantity: number;
@@ -113,8 +115,8 @@ export async function createOrder(data: {
     const total = data.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
 
     const orderResult = await client.query(
-      `INSERT INTO orders (table_id, customer_name, order_type, notes, total_amount)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO orders (table_id, customer_name, order_type, notes, total_amount, status)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
         data.table_id ?? null,
@@ -122,6 +124,7 @@ export async function createOrder(data: {
         data.order_type,
         data.notes ?? null,
         total,
+        data.status ?? "pending_verification",
       ]
     );
     const order: DbOrder = orderResult.rows[0];
@@ -251,6 +254,7 @@ export async function getActiveOrdersByTable(): Promise<
 
 export async function getOrderStats(): Promise<{
   total: number;
+  pending_verification: number;
   pending: number;
   in_preparation: number;
   ready_to_deliver: number;
@@ -261,7 +265,7 @@ export async function getOrderStats(): Promise<{
   const rows = await query<{ status: OrderStatus; count: string }>(
     `SELECT status, COUNT(*) AS count FROM orders GROUP BY status`
   );
-  const stats = { total: 0, pending: 0, in_preparation: 0, ready_to_deliver: 0, completed: 0, cancelled: 0, paid: 0 };
+  const stats = { total: 0, pending_verification: 0, pending: 0, in_preparation: 0, ready_to_deliver: 0, completed: 0, cancelled: 0, paid: 0 };
   for (const row of rows) {
     const c = parseInt(row.count, 10);
     stats.total += c;

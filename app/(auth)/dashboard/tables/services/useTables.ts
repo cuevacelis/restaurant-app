@@ -1,75 +1,50 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
-import type { Table } from "../_components/_types";
-export type { Table, TableWithOrders } from "../_components/_types";
+import type { RouterOutputs } from "@/trpc/routers/_app";
 
-async function fetchTables(): Promise<{ tables: Table[] }> {
-  const res = await fetch("/api/tables");
-  if (!res.ok) throw new Error("Error al cargar mesas");
-  return res.json();
-}
-
-async function fetchOrdersByTable(tableId: string) {
-  const res = await fetch(`/api/orders?tableId=${tableId}`);
-  if (!res.ok) throw new Error("Error al cargar pedidos");
-  return res.json();
-}
-
-async function createTable(data: { number: number; capacity: number }) {
-  const res = await fetch("/api/tables", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const d = await res.json();
-    throw new Error(d.error || "Error al crear mesa");
-  }
-  return res.json();
-}
-
-async function deleteTable(id: string) {
-  const res = await fetch(`/api/tables/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error al eliminar mesa");
-}
+export type Table = RouterOutputs["tables"]["list"]["tables"][number];
+export type { TableWithOrders } from "../_components/_types";
 
 export function useTables() {
-  return useQuery({
-    queryKey: ["tables"],
-    queryFn: fetchTables,
-  });
+  const trpc = useTRPC();
+  return useQuery(trpc.tables.list.queryOptions());
 }
 
 export function useTableOrders(tableId: string | null) {
+  const trpc = useTRPC();
   return useQuery({
-    queryKey: ["table-orders", tableId],
-    queryFn: () => fetchOrdersByTable(tableId!),
+    ...trpc.tables.ordersByTable.queryOptions({ tableId: tableId! }),
     enabled: !!tableId,
   });
 }
 
 export function useCreateTable() {
-  const qc = useQueryClient();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: createTable,
-    onSuccess: () => {
-      toast.success("Mesa creada");
-      qc.invalidateQueries({ queryKey: ["tables"] });
-    },
-    onError: (err: Error) => toast.error(err.message),
+    ...trpc.tables.create.mutationOptions({
+      onSuccess: () => {
+        toast.success("Mesa creada");
+        queryClient.invalidateQueries(trpc.tables.list.pathFilter());
+      },
+      onError: (err) => toast.error(err.message),
+    }),
   });
 }
 
 export function useDeleteTable() {
-  const qc = useQueryClient();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteTable,
-    onSuccess: () => {
-      toast.success("Mesa eliminada");
-      qc.invalidateQueries({ queryKey: ["tables"] });
-    },
-    onError: (err: Error) => toast.error(err.message),
+    ...trpc.tables.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success("Mesa eliminada");
+        queryClient.invalidateQueries(trpc.tables.list.pathFilter());
+      },
+      onError: (err) => toast.error(err.message),
+    }),
   });
 }

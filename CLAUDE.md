@@ -171,7 +171,7 @@ Hand-crafted shadcn-style components in `components/ui/`. The package `@base-ui-
 ### Environment Variables
 ```
 DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_NAME  # PostgreSQL (defaults to hardcoded RDS)
-JWT_SECRET                                            # Cookie signing key
+BETTER_AUTH_SECRET                                            # Cookie signing key
 NEXT_PUBLIC_WEBSOCKET_URL                             # API Gateway WebSocket endpoint
 NEXT_PUBLIC_APP_URL                                   # Full origin URL (used for MP callbacks)
 ```
