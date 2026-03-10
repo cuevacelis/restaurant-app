@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
+import { UtensilsCrossed, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -131,7 +131,14 @@ export default function LoginPage() {
                 />
 
                 <Button type="submit" className="w-full" disabled={isPending}>
-                  {isPending ? "Iniciando sesión..." : "Iniciar sesión"}
+                  {isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Iniciando sesión...
+                    </>
+                  ) : (
+                    "Iniciar sesión"
+                  )}
                 </Button>
               </FieldGroup>
             </form>

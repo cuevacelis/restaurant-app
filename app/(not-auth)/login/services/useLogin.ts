@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { toast } from "sonner";
 import { signIn } from "@/lib/auth-client";
 
 export function useLogin() {
+  const [isPending, setIsPending] = useState(false);
+
   const login = async (data: { username: string; password: string }) => {
+    setIsPending(true);
     const result = await signIn.username({
       username: data.username,
       password: data.password,
@@ -15,6 +19,7 @@ export function useLogin() {
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Error al iniciar sesión");
+          setIsPending(false);
         },
       },
     });
@@ -24,6 +29,6 @@ export function useLogin() {
   return {
     mutate: login,
     mutateAsync: login,
-    isPending: false, // Better Auth handles loading state internally
+    isPending,
   };
 }
