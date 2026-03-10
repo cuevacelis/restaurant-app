@@ -32,7 +32,7 @@ INSERT INTO menu_categories (name, description, order_index) VALUES
   ('Postres',         'Dulces tradicionales peruanos',          5),
   ('Bebidas',         'Bebidas frías y calientes',              6),
   ('Cocteles',        'Bebidas con y sin alcohol',              7)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
 
 -- ── Platos del menú ──────────────────────────────────────────
 -- Precios en Soles (S/)

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 
 export interface MenuItem {
   id: string;
@@ -25,16 +26,9 @@ export interface MenuData {
   categories: Category[];
 }
 
-async function fetchMenu(): Promise<MenuData> {
-  const res = await fetch("/api/menu?availableOnly=true");
-  if (!res.ok) throw new Error("Error al cargar el menú");
-  return res.json();
-}
-
 export function useMenu() {
-  return useQuery({
-    queryKey: ["menu", "public"],
-    queryFn: fetchMenu,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const trpc = useTRPC();
+  return useQuery(
+    trpc.menu.listItems.queryOptions({ availableOnly: true })
+  );
 }

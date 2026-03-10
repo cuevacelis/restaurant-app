@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
 
 export interface PaymentMethod {
   id: string;
@@ -12,15 +13,8 @@ export interface PaymentMethod {
 }
 
 export function usePaymentMethods() {
-  return useQuery({
-    queryKey: ["payment-methods", "public"],
-    queryFn: async (): Promise<{ methods: PaymentMethod[] }> => {
-      const res = await fetch("/api/payment-methods");
-      if (!res.ok) throw new Error("Error al cargar métodos de pago");
-      return res.json();
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const trpc = useTRPC();
+  return useQuery(trpc.payments.list.queryOptions());
 }
 
 export function useCreateMPPreference(orderId: string) {

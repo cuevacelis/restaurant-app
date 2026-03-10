@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS verifications (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS menu_categories (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name        VARCHAR(100) NOT NULL,
+  name        VARCHAR(100) NOT NULL UNIQUE,
   description TEXT,
   order_index INTEGER      DEFAULT 0,
   active      BOOLEAN      DEFAULT TRUE,
