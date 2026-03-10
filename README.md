@@ -2,6 +2,8 @@
 
 Sistema de gestión para restaurantes con pedidos vía QR, cocina en tiempo real y pagos integrados.
 
+![Restaurant App](./restaurant-app.jpeg)
+
 ## Características
 
 - **Clientes** escanean un QR por mesa (o un QR general) y hacen su pedido desde el celular
