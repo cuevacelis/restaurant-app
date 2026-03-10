@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Restaurant App",
   description: "Sistema de gestión para restaurante",
+  themeColor: "#ef4444",
 };
 
 export default function RootLayout({
