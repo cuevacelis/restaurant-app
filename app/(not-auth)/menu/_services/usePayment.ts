@@ -3,14 +3,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
+import type { inferRouterOutputs } from "@trpc/server";
+import type { AppRouter } from "@/trpc/routers/_app";
 
-export interface PaymentMethod {
-  id: string;
-  name: string;
-  type: "manual" | "mercadopago";
-  display_text: string | null;
-  sort_order: number;
-}
+type RouterOutputs = inferRouterOutputs<AppRouter>;
+type ListOutput = RouterOutputs["payments"]["list"];
+
+export type PaymentMethod = ListOutput["methods"][number];
 
 export function usePaymentMethods() {
   const trpc = useTRPC();

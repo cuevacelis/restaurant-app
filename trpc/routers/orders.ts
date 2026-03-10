@@ -11,6 +11,17 @@ import {
   appendOrderItems,
   addOrderReview,
 } from "@/lib/db/queries/orders";
+import { getTableByNumber } from "@/lib/db/queries/tables";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveTableId(tableId: string): Promise<string | null> {
+  if (UUID_REGEX.test(tableId)) return tableId;
+  const num = parseInt(tableId, 10);
+  if (isNaN(num)) return null;
+  const table = await getTableByNumber(num);
+  return table?.id ?? null;
+}
 import { VALID_STATUSES, type OrderStatus } from "@/lib/db/order-status";
 
 const orderItemSchema = z.object({
@@ -59,10 +70,11 @@ export const ordersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Staff (authenticated) → pending, customer → pending_verification
       const isStaff = !!ctx.session?.user;
+      const table_id = input.table_id ? await resolveTableId(input.table_id) : undefined;
       const order = await createOrder({
         ...input,
+        table_id: table_id ?? undefined,
         status: isStaff ? "pending" : "pending_verification",
       });
       return { order };

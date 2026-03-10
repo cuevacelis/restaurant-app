@@ -2,29 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
+import type { inferRouterOutputs } from "@trpc/server";
+import type { AppRouter } from "@/trpc/routers/_app";
 
-export interface MenuItem {
-  id: string;
-  category_id: string;
-  category_name: string;
-  name: string;
-  description: string | null;
-  price: string;
-  image_url: string | null;
-  available: boolean;
-}
+type RouterOutputs = inferRouterOutputs<AppRouter>;
 
-export interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  order_index: number;
-}
-
-export interface MenuData {
-  items: MenuItem[];
-  categories: Category[];
-}
+export type MenuData = RouterOutputs["menu"]["listItems"];
+export type MenuItem = MenuData["items"][number];
+export type Category = MenuData["categories"][number];
 
 export function useMenu() {
   const trpc = useTRPC();

@@ -16,7 +16,7 @@ export interface DbPaymentMethod {
 export interface DbPaymentMethodPublic {
   id: string;
   name: string;
-  type: string;
+  type: "manual" | "mercadopago";
   display_text: string | null;
   sort_order: number;
 }

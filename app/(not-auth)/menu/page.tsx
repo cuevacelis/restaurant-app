@@ -32,7 +32,8 @@ import type { CartItem } from "./_components/_types";
 function MenuPageInner() {
   const searchParams = useSearchParams();
   const mpStatus = searchParams.get("mp");
-  const tableId = searchParams.get("tableId") ?? undefined;
+  const tableId = searchParams.get("tableId") ?? undefined; // UUID — used for order creation & session
+  const tableNumber = searchParams.get("tableNumber") ?? undefined; // human-readable number for display
 
   const { sessionLoaded, customerName, setCustomerName, orderId, setOrderId, step, setStep } =
     useMenuSession(tableId);
@@ -168,7 +169,7 @@ function MenuPageInner() {
         customerName={customerName}
         onChange={setCustomerName}
         onSubmit={handleNameSubmit}
-        tableId={tableId}
+        tableId={tableNumber}
       />
     );
   }
@@ -201,7 +202,7 @@ function MenuPageInner() {
           customerName={customerName}
           cartCount={cartCount}
           onCartClick={() => setStep("cart")}
-          tableId={tableId}
+          tableId={tableNumber}
         />
 
         {menuLoading ? (
@@ -265,7 +266,7 @@ function MenuPageInner() {
           <UtensilsCrossed className="h-5 w-5 text-primary" />
           <div>
             <p className="text-sm font-semibold">
-              {tableId ? `Mesa #${tableId}` : "Tu pedido"}
+              {tableNumber ? `Mesa #${tableNumber}` : "Tu pedido"}
             </p>
             <p className="text-xs text-muted-foreground">{customerName}</p>
           </div>

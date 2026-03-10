@@ -13,8 +13,8 @@ import { CreateTableDialog } from "./_components/CreateTableDialog";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-function qrUrl(tableNumber: number) {
-  return `${APP_URL}/menu?tableId=${tableNumber}`;
+function qrUrl(table: { id: string; number: number }) {
+  return `${APP_URL}/menu?tableId=${table.id}&tableNumber=${table.number}`;
 }
 
 export default function TablesPage() {
@@ -74,7 +74,7 @@ export default function TablesPage() {
             activeOrders={activeByTable(table.id)}
             isSelected={selectedTableId === table.id}
             onSelect={() => setTableParam(selectedTableId === table.id ? null : table.id)}
-            onOpenQr={() => setQrTable({ number: table.number, url: qrUrl(table.number) })}
+            onOpenQr={() => setQrTable({ number: table.number, url: qrUrl(table) })}
           />
         ))}
       </div>
@@ -83,9 +83,9 @@ export default function TablesPage() {
         <TableDetailPanel
           table={selectedTable}
           orders={orders}
-          qrUrl={qrUrl(selectedTable.number)}
+          qrUrl={qrUrl(selectedTable)}
           onOpenQr={() =>
-            setQrTable({ number: selectedTable.number, url: qrUrl(selectedTable.number) })
+            setQrTable({ number: selectedTable.number, url: qrUrl(selectedTable) })
           }
           onDelete={() => {
             deleteTable({ id: selectedTable.id });
